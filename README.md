@@ -2,7 +2,39 @@
 
 Biblioteca personal de papers y evidencia relevante para mi trabajo. Sitio estático bilingüe (ES/EN) servido por GitHub Pages.
 
-**Estado:** en construcción — Fase 0 (scaffolding).
+**Live:** https://tomgc.github.io/evidence/
+
+## Cómo correrlo
+
+### Agregar un paper
+
+1. Copiar `data/raw/papers/_template.md` con un slug nuevo (snake_case ASCII, sin tildes ni espacios).
+2. Completar el frontmatter YAML y agregar notas largas en el cuerpo.
+3. (Opcional) Colocar el PDF en `data/raw/pdfs/<slug>.pdf`.
+4. Correr el pipeline.
+
+### Pipeline de datos
+
+```bash
+Rscript scripts/01_build_data.R
+```
+
+Lee todos los `.md` de `data/raw/papers/`, valida el frontmatter, y genera `data/processed/papers.json` (canonical) + `site/data/papers.json` (copia para servir).
+
+### Preview local
+
+```bash
+python3 -m http.server 4322 --directory site
+# → http://localhost:4322
+```
+
+### Deploy a GitHub Pages
+
+```bash
+bash scripts/02_deploy.sh
+```
+
+Corre el pipeline, copia `site/` a un repo temporal y force-pushea a la branch `gh-pages`. GitHub Pages sirve esa branch en `https://tomgc.github.io/evidence/`.
 
 ## Estructura
 
@@ -27,10 +59,12 @@ evidence/
 
 ## Roadmap
 
-- **Fase 0** *(actual)*: scaffolding del repo.
-- **Fase 1**: pipeline R que parsea `data/raw/papers/*.md` y genera `data/processed/papers.json` validado.
-- **Fase 2**: sitio MVP — listado, búsqueda full-text, filtros por tag, vista de detalle, citación copiable (APA + BibTeX).
-- **Fase 3**: deploy automatizado a branch `gh-pages`.
+- ~~**Fase 0**: scaffolding del repo.~~ ✓
+- ~~**Fase 1**: pipeline R que parsea `data/raw/papers/*.md` y genera `data/processed/papers.json` validado.~~ ✓
+- ~~**Fase 2**: sitio MVP — listado, búsqueda full-text, filtros por tag, vista de detalle, citación copiable (APA + BibTeX).~~ ✓
+- ~~**Fase 3**: deploy a branch `gh-pages`.~~ ✓
+
+**Próximos pasos (no comprometidos):** render de markdown en notas; tema oscuro; renvio automático en push (GitHub Actions).
 
 ## Convenciones
 
