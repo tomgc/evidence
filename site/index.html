@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>evidence</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="brand">evidence</h1>
+    <button id="lang-toggle" class="lang-toggle" type="button" aria-label="Toggle language">EN</button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Filtros">
+      <label class="search-field">
+        <span class="visually-hidden" data-i18n="search_label">Buscar</span>
+        <input
+          id="search"
+          type="search"
+          autocomplete="off"
+          data-i18n-attr="placeholder:search_placeholder"
+          placeholder="Buscar título, autor, tag, notas…">
+      </label>
+
+      <section class="filter-group">
+        <h2 data-i18n="tags_heading">Tags</h2>
+        <ul id="tag-list" class="tag-list"></ul>
+      </section>
+
+      <section class="filter-group">
+        <h2 data-i18n="status_heading">Estado</h2>
+        <select id="status-filter">
+          <option value="" data-i18n="status_all">Todos</option>
+          <option value="toread" data-i18n="status_toread">Por leer</option>
+          <option value="reading" data-i18n="status_reading">Leyendo</option>
+          <option value="read" data-i18n="status_read">Leído</option>
+          <option value="archived" data-i18n="status_archived">Archivado</option>
+        </select>
+      </section>
+
+      <p id="count" class="count" aria-live="polite"></p>
+    </aside>
+
+    <main class="list-pane">
+      <ol id="papers" class="papers"></ol>
+      <p id="empty" class="empty hidden" data-i18n="empty_state">No hay papers que coincidan con los filtros.</p>
+    </main>
+
+    <aside id="detail" class="detail-pane hidden" aria-label="Detalle del paper">
+      <button id="detail-close" class="detail-close" type="button" aria-label="Cerrar">×</button>
+      <div id="detail-body"></div>
+    </aside>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

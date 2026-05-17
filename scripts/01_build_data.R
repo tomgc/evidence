@@ -26,6 +26,10 @@ ruta_pdfs        <- here("data", "raw", "pdfs")
 ruta_processed   <- here("data", "processed")
 ruta_papers_json <- file.path(ruta_processed, "papers.json")
 ruta_papers_tmp  <- file.path(ruta_processed, "papers.json.tmp")
+# Copia para servir el sitio (single source en data/processed; site/data/ es derivado).
+ruta_site_data        <- here("site", "data")
+ruta_site_papers_json <- file.path(ruta_site_data, "papers.json")
+ruta_site_pdfs        <- file.path(ruta_site_data, "pdfs")
 
 # --- Constantes ---------------------------------------------------------------
 # Archivos cuyo nombre empieza con "_" son plantillas y no se procesan.
@@ -91,7 +95,19 @@ if (!dir.exists(ruta_processed)) dir.create(ruta_processed, recursive = TRUE)
 json_text <- papers_to_json(papers)
 escribir_atomico(json_text, ruta_papers_json, ruta_papers_tmp)
 
+# Copia derivada para el sitio (no commiteada; ver .gitignore).
+if (!dir.exists(ruta_site_data)) dir.create(ruta_site_data, recursive = TRUE)
+file.copy(ruta_papers_json, ruta_site_papers_json, overwrite = TRUE)
+
+# Espeja PDFs locales al sitio (idempotente).
+if (!dir.exists(ruta_site_pdfs)) dir.create(ruta_site_pdfs, recursive = TRUE)
+pdfs_raw <- list.files(ruta_pdfs, pattern = "\\.pdf$", full.names = TRUE)
+for (p in pdfs_raw) {
+  file.copy(p, file.path(ruta_site_pdfs, basename(p)), overwrite = TRUE)
+}
+
 # --- Resumen ------------------------------------------------------------------
 con_pdf <- sum(vapply(papers, `[[`, logical(1), "has_pdf"))
 message(sprintf("\n[OK] %d papers escritos en %s", length(papers), ruta_papers_json))
+message(sprintf("     copia para el sitio: %s", ruta_site_papers_json))
 message(sprintf("     %d con PDF local, %d solo enlace.", con_pdf, length(papers) - con_pdf))

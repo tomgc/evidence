@@ -10,3 +10,6 @@
 
 # Temporales
 tmp/
+
+# Sitio: data/ es copia derivada del pipeline R (canonical en data/processed/).
+site/data/
