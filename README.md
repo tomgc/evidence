@@ -98,6 +98,19 @@ evidence/
 
 **Próximos pasos (no comprometidos):** render de markdown en notas; tema oscuro; renvio automático en push (GitHub Actions).
 
+## Dependencias
+
+Las dependencias R están listadas en `DESCRIPTION` (`Imports:`). Para instalarlas en un entorno limpio:
+
+```r
+install.packages("pak")
+pak::pak()   # instala desde DESCRIPTION
+```
+
+Cada script tiene además un bloque install-if-missing como red de seguridad para correr sin pasos previos.
+
+La decisión de usar `DESCRIPTION` y no `renv` está documentada en [docs/decisiones/003_dependencias_description_no_renv.md](docs/decisiones/003_dependencias_description_no_renv.md).
+
 ## Convenciones
 
 Sigue los Principios de Desarrollo personales del autor. Resumen operativo:

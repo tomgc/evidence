@@ -2,6 +2,8 @@
 # Funciones para leer y validar papers desde data/raw/papers/*.md.
 # Cada paper es un .md con frontmatter YAML + cuerpo de notas en markdown.
 
+source(here::here("R", "constants.R"))
+
 # Coalesce nulo: devuelve y si x es NULL.
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
@@ -73,7 +75,6 @@ read_paper_md <- function(path, pdfs_dir) {
 #' @return character vector con descripciones de error (vacío si pasa)
 validate_paper <- function(paper) {
   errores <- character()
-  status_validos <- c("toread", "reading", "read", "archived")
 
   # relevance es opcional: muchos papers entran como "toread" sin rating todavía.
   for (campo in c("title", "year", "source", "url", "added_on", "status")) {
@@ -84,22 +85,24 @@ validate_paper <- function(paper) {
   if (length(paper$authors) == 0) {
     errores <- c(errores, "authors vacío (debe ser lista YAML con al menos 1)")
   }
-  if (!is.na(paper$year) && (paper$year < 1900 || paper$year > 2100)) {
-    errores <- c(errores, sprintf("year fuera de rango: %s", paper$year))
+  if (!is.na(paper$year) && (paper$year < YEAR_MIN || paper$year > YEAR_MAX)) {
+    errores <- c(errores, sprintf("year fuera de rango [%d, %d]: %s",
+                                  YEAR_MIN, YEAR_MAX, paper$year))
   }
-  if (!is.na(paper$relevance) && !(paper$relevance %in% 1:5)) {
-    errores <- c(errores, sprintf("relevance debe ser entero 1-5: %s", paper$relevance))
+  if (!is.na(paper$relevance) &&
+      !(paper$relevance %in% RELEVANCE_MIN:RELEVANCE_MAX)) {
+    errores <- c(errores, sprintf("relevance debe ser entero %d-%d: %s",
+                                  RELEVANCE_MIN, RELEVANCE_MAX, paper$relevance))
   }
-  if (!is.na(paper$status) && !(paper$status %in% status_validos)) {
+  if (!is.na(paper$status) && !(paper$status %in% STATUS_VALIDOS)) {
     errores <- c(errores, sprintf(
       "status inválido: '%s' (válidos: %s)",
-      paper$status, paste(status_validos, collapse = ", ")
+      paper$status, paste(STATUS_VALIDOS, collapse = ", ")
     ))
   }
-  if (!grepl("^[a-z0-9_]+$", paper$slug)) {
+  if (!grepl(SLUG_PATTERN, paper$slug)) {
     errores <- c(errores, sprintf(
-      "slug inválido (solo a-z, 0-9, _; sin tildes ni espacios): %s",
-      paper$slug
+      "slug inválido (patrón %s): %s", SLUG_PATTERN, paper$slug
     ))
   }
   errores

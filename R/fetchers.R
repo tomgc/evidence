@@ -7,16 +7,12 @@
 # Convención: ninguna función toca disco fuera de los paths que recibe; ningún
 # print/message debe afectar el control de flujo del caller.
 
+source(here::here("R", "constants.R"))
+
 `%||%` <- function(x, y) if (is.null(x) || (length(x) == 1 && is.na(x))) y else x
 
+# User-Agent declarado para CrossRef etiquette (recomiendan email contacto).
 UA <- "evidence/0.1 (https://github.com/tomgc/evidence; mailto:tgonzalez@gmail.com)"
-
-STOPWORDS <- c(
-  "a", "an", "the", "of", "in", "on", "to", "is", "are", "and", "or",
-  "for", "with", "by", "from", "as", "at", "be", "this", "that",
-  "el", "la", "los", "las", "un", "una", "de", "del", "en", "y", "o",
-  "con", "para", "por", "al"
-)
 
 # --- Limpieza ----------------------------------------------------------------
 clean_html <- function(s) {
@@ -170,7 +166,7 @@ generar_slug <- function(authors, year, title) {
   titulo <- stringi::stri_trans_general(title %||% "", "Latin-ASCII")
   titulo <- tolower(titulo)
   palabras <- strsplit(titulo, "[^a-z0-9]+")[[1]]
-  palabras <- palabras[nchar(palabras) > 0 & !palabras %in% STOPWORDS]
+  palabras <- palabras[nchar(palabras) > 0 & !palabras %in% STOPWORDS_SLUG]
   primeras <- head(palabras, 3)
 
   paste(c(apellido, year, primeras), collapse = "_")

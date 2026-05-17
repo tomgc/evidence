@@ -17,14 +17,8 @@ jobs:
         with:
           use-public-rspm: true
 
-      - name: Install R packages (cached)
+      - name: Install R packages (read from DESCRIPTION, cached)
         uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          packages: |
-            any::here
-            any::yaml
-            any::jsonlite
-            any::purrr
 
       - name: Build papers.json
         run: Rscript scripts/01_build_data.R

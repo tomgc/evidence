@@ -1,0 +1,21 @@
+Package: evidence
+Type: Project
+Title: Personal Papers & Evidence Library
+Version: 0.1.0
+Authors@R: person("Tomas", "Gonzalez", email = "tgonzalez@gmail.com", role = c("aut", "cre"))
+Description: Static-site library for personal academic papers and evidence,
+    fed by an R pipeline that parses one-markdown-per-paper sources into a
+    JSON consumed by a bilingual web UI.
+License: file LICENSE
+Encoding: UTF-8
+Depends:
+    R (>= 4.5)
+Imports:
+    here,
+    yaml,
+    jsonlite,
+    purrr,
+    httr2,
+    xml2,
+    pdftools,
+    stringi

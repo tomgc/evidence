@@ -32,8 +32,8 @@ ruta_site_papers_json <- file.path(ruta_site_data, "papers.json")
 ruta_site_pdfs        <- file.path(ruta_site_data, "pdfs")
 
 # --- Constantes ---------------------------------------------------------------
-# Archivos cuyo nombre empieza con "_" son plantillas y no se procesan.
-PREFIJO_TEMPLATE <- "_"
+# Centralizadas en R/constants.R (PREFIJO_TEMPLATE, vocabularios, rangos).
+source(here("R", "constants.R"))
 
 # --- Funciones ----------------------------------------------------------------
 source(here("R", "parse_papers.R"))

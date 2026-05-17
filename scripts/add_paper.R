@@ -16,9 +16,18 @@ paquetes_faltantes <- paquetes_requeridos[
 ]
 if (length(paquetes_faltantes) > 0) install.packages(paquetes_faltantes)
 
+# --- Carga de paquetes -------------------------------------------------------
 library(here)
+
+# --- Rutas (centralizadas) ---------------------------------------------------
+ruta_papers <- here("data", "raw", "papers")
+ruta_pdfs   <- here("data", "raw", "pdfs")
+ruta_build  <- here("scripts", "01_build_data.R")
+
+# --- Funciones ---------------------------------------------------------------
 source(here("R", "fetchers.R"))
 
+# --- Flujo principal ---------------------------------------------------------
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 1) {
   stop("Uso: Rscript scripts/add_paper.R <DOI | arxiv_id | URL | pdf_path>")
@@ -36,7 +45,7 @@ message(sprintf("  Año: %s | DOI: %s", meta$year, meta$doi %||% "(sin DOI)"))
 slug <- generar_slug(meta$authors, meta$year, meta$title)
 message("→ Slug: ", slug)
 
-md_path <- here("data", "raw", "papers", paste0(slug, ".md"))
+md_path <- file.path(ruta_papers, paste0(slug, ".md"))
 if (file.exists(md_path)) {
   stop(sprintf("Ya existe: %s. Borra el archivo si quieres regenerarlo.", md_path))
 }
@@ -44,11 +53,11 @@ if (file.exists(md_path)) {
 write_paper_md(meta, md_path)
 message("→ Escrito: ", md_path)
 
-pdf_dest <- here("data", "raw", "pdfs", paste0(slug, ".pdf"))
+pdf_dest <- file.path(ruta_pdfs, paste0(slug, ".pdf"))
 if (guardar_pdf(meta, pdf_dest)) message("→ PDF guardado: ", pdf_dest)
 
 message("→ Re-construyendo papers.json...")
-source(here("scripts", "01_build_data.R"))
+source(ruta_build)
 
 message("\n✓ Listo. Edita el archivo para tus notas y key_findings:")
 message("  ", md_path)
