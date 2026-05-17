@@ -1,0 +1,12 @@
+# R
+.Rhistory
+.RData
+.Rapp.history
+.Ruserdata
+.Rproj.user/
+
+# macOS
+.DS_Store
+
+# Temporales
+tmp/
