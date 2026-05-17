@@ -23,7 +23,7 @@
     "added_on": "2026-05-17",
     "authors": ["Vaswani, Ashish", "Shazeer, Noam", "Parmar, Niki", "Uszkoreit, Jakob", "Jones, Llion", "Gomez, Aidan N.", "Kaiser, Łukasz", "Polosukhin, Illia"],
     "doi": "10.48550/arXiv.1706.03762",
-    "has_pdf": false,
+    "has_pdf": true,
     "journal": "Advances in Neural Information Processing Systems (NeurIPS)",
     "key_findings": ["La arquitectura Transformer reemplaza recurrencia y convolución por self-attention puro.", "Alcanza estado del arte en traducción automática con significativamente menos cómputo de entrenamiento.", "Sienta la base para toda la familia posterior de modelos (BERT, GPT, T5, etc.)."],
     "my_takeaway": "Paper de ejemplo cargado para validar el pipeline.\n**Borrar al ingresar el primer paper real de la librería.**",

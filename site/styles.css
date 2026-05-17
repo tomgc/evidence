@@ -386,7 +386,8 @@ body {
   margin-top: 0.75rem;
   flex-wrap: wrap;
 }
-.detail-actions a {
+.detail-actions a,
+.detail-actions .action-btn {
   font-size: 0.8rem;
   padding: 0.35rem 0.75rem;
   border: 1px solid var(--accent);
@@ -394,10 +395,53 @@ body {
   background: var(--surface);
   border-radius: var(--radius);
   text-decoration: none;
+  font-family: inherit;
+  cursor: pointer;
 }
-.detail-actions a:hover {
+.detail-actions a:hover,
+.detail-actions .action-btn:hover {
   background: var(--accent);
   color: var(--surface);
+}
+
+/* PDF inline overlay */
+.pdf-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 25, 23, 0.6);
+  z-index: 1000;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  padding: 2rem;
+}
+.pdf-overlay-bar {
+  background: var(--surface);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 0.4rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.pdf-overlay-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 0.25rem;
+}
+.pdf-overlay-close:hover { color: var(--text); }
+.pdf-overlay-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: var(--surface);
+  border-radius: 0 0 var(--radius) var(--radius);
 }
 
 /* Status badge */

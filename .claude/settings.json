@@ -13,6 +13,7 @@
       "Bash(curl -sI *)",
       "Bash(Rscript scripts/01_build_data.R)",
       "Bash(Rscript scripts/add_paper.R *)",
+      "Bash(Rscript scripts/03_process_inbox.R)",
       "Bash(bash scripts/02_deploy.sh)",
       "Bash(git add *)",
       "Bash(git commit *)",

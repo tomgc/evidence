@@ -35,6 +35,7 @@ const I18N = {
     label_added: 'Agregado',
     label_status: 'Estado',
     action_pdf: 'Abrir PDF',
+    action_pdf_inline: 'Ver PDF aquí',
     action_link: 'Abrir enlace',
     copy: 'Copiar',
     copied: 'Copiado',
@@ -67,6 +68,7 @@ const I18N = {
     label_added: 'Added',
     label_status: 'Status',
     action_pdf: 'Open PDF',
+    action_pdf_inline: 'View PDF here',
     action_link: 'Open link',
     copy: 'Copy',
     copied: 'Copied',
@@ -131,6 +133,38 @@ function setLang(lang) {
   if (state.selectedSlug) renderDetail(findPaper(state.selectedSlug));
 }
 
+// --- URL state ------------------------------------------------------------
+// Sincroniza ?q=...&tag=t1,t2&status=read#slug con el estado interno.
+
+function readUrlState() {
+  const params = new URLSearchParams(window.location.search);
+  state.query = params.get('q') || '';
+  state.status = params.get('status') || '';
+  const tags = params.get('tag');
+  state.activeTags = new Set(tags ? tags.split(',').filter(Boolean) : []);
+  const hash = window.location.hash.slice(1);
+  state.selectedSlug = hash || null;
+}
+
+function writeUrlState() {
+  const params = new URLSearchParams();
+  if (state.query) params.set('q', state.query);
+  if (state.status) params.set('status', state.status);
+  if (state.activeTags.size > 0) params.set('tag', [...state.activeTags].join(','));
+  const qs = params.toString();
+  const hash = state.selectedSlug ? '#' + state.selectedSlug : '';
+  const newUrl = window.location.pathname + (qs ? '?' + qs : '') + hash;
+  if (newUrl !== window.location.pathname + window.location.search + window.location.hash) {
+    history.replaceState(null, '', newUrl);
+  }
+}
+
+// Aplica el estado leído de la URL a los controles del DOM.
+function syncControlsFromState() {
+  els.search.value = state.query;
+  els.statusFilter.value = state.status;
+}
+
 // --- Helpers ---------------------------------------------------------------
 function findPaper(slug) {
   return state.papers.find((p) => p.slug === slug);
@@ -191,6 +225,7 @@ function render() {
   renderTags();
   els.count.textContent = t('count')(filtered.length);
   els.empty.classList.toggle('hidden', filtered.length > 0);
+  writeUrlState();
 }
 
 function renderList(papers) {
@@ -263,7 +298,7 @@ function renderTags() {
 // --- Detalle ---------------------------------------------------------------
 function selectPaper(slug) {
   state.selectedSlug = slug;
-  history.replaceState(null, '', '#' + slug);
+  writeUrlState();
   const p = findPaper(slug);
   if (!p) {
     closeDetail();
@@ -280,7 +315,7 @@ function selectPaper(slug) {
 
 function closeDetail() {
   state.selectedSlug = null;
-  history.replaceState(null, '', window.location.pathname + window.location.search);
+  writeUrlState();
   els.layout.classList.remove('detail-open');
   els.detail.classList.add('hidden');
   document.querySelectorAll('.paper-row.active').forEach((el) => el.classList.remove('active'));
@@ -313,8 +348,17 @@ function renderDetail(p) {
   const actions = document.createElement('div');
   actions.className = 'detail-actions';
   if (p.has_pdf) {
+    const pdfHref = `data/pdfs/${p.slug}.pdf`;
+    // Inline toggle
+    const inlineBtn = document.createElement('button');
+    inlineBtn.type = 'button';
+    inlineBtn.textContent = t('action_pdf_inline');
+    inlineBtn.className = 'action-btn';
+    inlineBtn.addEventListener('click', () => togglePdfInline(p.slug, pdfHref));
+    actions.appendChild(inlineBtn);
+    // External
     const a = document.createElement('a');
-    a.href = `data/pdfs/${p.slug}.pdf`;
+    a.href = pdfHref;
     a.target = '_blank'; a.rel = 'noopener';
     a.textContent = t('action_pdf');
     actions.appendChild(a);
@@ -525,6 +569,41 @@ function formatBibtex(p) {
   return lines.join('\n');
 }
 
+// --- PDF inline ------------------------------------------------------------
+// Crea / destruye un overlay con iframe del PDF dentro del detalle.
+function togglePdfInline(slug, href) {
+  const existing = document.getElementById('pdf-overlay');
+  if (existing) {
+    existing.remove();
+    return;
+  }
+  const overlay = document.createElement('div');
+  overlay.id = 'pdf-overlay';
+  overlay.className = 'pdf-overlay';
+
+  const bar = document.createElement('div');
+  bar.className = 'pdf-overlay-bar';
+  const label = document.createElement('span');
+  label.textContent = slug + '.pdf';
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'pdf-overlay-close';
+  close.textContent = '×';
+  close.setAttribute('aria-label', 'Cerrar PDF');
+  close.addEventListener('click', () => overlay.remove());
+  bar.appendChild(label);
+  bar.appendChild(close);
+
+  const iframe = document.createElement('iframe');
+  iframe.src = href + '#toolbar=1&navpanes=0';
+  iframe.title = 'PDF: ' + slug;
+  iframe.className = 'pdf-overlay-frame';
+
+  overlay.appendChild(bar);
+  overlay.appendChild(iframe);
+  document.body.appendChild(overlay);
+}
+
 // --- Interacción -----------------------------------------------------------
 function toggleTag(tag) {
   if (state.activeTags.has(tag)) state.activeTags.delete(tag);
@@ -547,7 +626,11 @@ function onStatusChange(e) {
 }
 
 function onKeyDown(e) {
-  if (e.key === 'Escape' && state.selectedSlug) closeDetail();
+  if (e.key === 'Escape') {
+    const overlay = document.getElementById('pdf-overlay');
+    if (overlay) { overlay.remove(); return; }
+    if (state.selectedSlug) closeDetail();
+  }
 }
 
 // --- Bootstrap -------------------------------------------------------------
@@ -556,6 +639,10 @@ async function init() {
   const saved = localStorage.getItem(LANG_KEY);
   if (saved === 'es' || saved === 'en') state.lang = saved;
   applyI18n();
+
+  // Estado desde URL (?q=...&tag=...&status=...#slug)
+  readUrlState();
+  syncControlsFromState();
 
   // Listeners
   els.search.addEventListener('input', onSearchInput);
@@ -578,10 +665,10 @@ async function init() {
 
   render();
 
-  // Abrir paper por hash si viene en la URL
-  if (window.location.hash) {
-    const slug = window.location.hash.slice(1);
-    if (findPaper(slug)) selectPaper(slug);
+  // Abrir paper si el slug viene en el hash (lo dejó readUrlState).
+  if (state.selectedSlug) {
+    if (findPaper(state.selectedSlug)) selectPaper(state.selectedSlug);
+    else state.selectedSlug = null;
   }
 }
 

@@ -45,13 +45,28 @@ python3 -m http.server 4322 --directory site
 # → http://localhost:4322
 ```
 
+### Procesar lote de PDFs (inbox)
+
+Si tienes una carpeta con PDFs que quieres migrar:
+
+```bash
+cp ~/mi_carpeta_de_papers/*.pdf data/raw/pdfs/inbox/
+Rscript scripts/03_process_inbox.R
+```
+
+Para cada PDF: extrae el DOI del texto, consulta CrossRef, genera el `.md` con frontmatter y mueve el PDF al destino final con el slug correspondiente. Errores en PDFs individuales no detienen el batch (los PDFs fallidos quedan en `inbox/` para revisión manual).
+
 ### Deploy a GitHub Pages
+
+**Automático:** cada push a `main` dispara `.github/workflows/deploy.yml`, que regenera `papers.json` y publica a la branch `gh-pages`.
+
+**Manual (para deploys ad-hoc sin esperar CI):**
 
 ```bash
 bash scripts/02_deploy.sh
 ```
 
-Corre el pipeline, copia `site/` a un repo temporal y force-pushea a la branch `gh-pages`. GitHub Pages sirve esa branch en `https://tomgc.github.io/evidence/`.
+GitHub Pages sirve `gh-pages` en https://tomgc.github.io/evidence/.
 
 ## Estructura
 
