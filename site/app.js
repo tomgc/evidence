@@ -12,17 +12,14 @@ const I18N = {
     search_label: 'Buscar',
     search_placeholder: 'Buscar título, autor, tag, notas…',
     tags_heading: 'Tags',
-    status_heading: 'Estado',
-    status_all: 'Todos',
-    status_toread: 'Por leer',
-    status_reading: 'Leyendo',
-    status_read: 'Leído',
-    status_archived: 'Archivado',
+    read_heading: 'Lectura',
+    read_all: 'Todos',
+    read_unread: 'No leídos',
+    read_read: 'Leídos',
     empty_state: 'No hay papers que coincidan con los filtros.',
     count: (n) => `${n} paper${n === 1 ? '' : 's'}`,
     section_abstract: 'Abstract',
     section_findings: 'Hallazgos clave',
-    section_takeaway: 'Mi conclusión',
     section_notes: 'Notas',
     section_meta: 'Metadatos',
     section_cite: 'Citar',
@@ -31,9 +28,8 @@ const I18N = {
     label_journal: 'Publicación',
     label_doi: 'DOI',
     label_url: 'URL',
-    label_relevance: 'Relevancia',
     label_added: 'Agregado',
-    label_status: 'Estado',
+    label_read: 'Leído',
     action_pdf: 'Abrir PDF',
     action_pdf_inline: 'Ver PDF aquí',
     action_link: 'Abrir enlace',
@@ -45,17 +41,14 @@ const I18N = {
     search_label: 'Search',
     search_placeholder: 'Search title, author, tag, notes…',
     tags_heading: 'Tags',
-    status_heading: 'Status',
-    status_all: 'All',
-    status_toread: 'To read',
-    status_reading: 'Reading',
-    status_read: 'Read',
-    status_archived: 'Archived',
+    read_heading: 'Reading',
+    read_all: 'All',
+    read_unread: 'Unread',
+    read_read: 'Read',
     empty_state: 'No papers match the current filters.',
     count: (n) => `${n} paper${n === 1 ? '' : 's'}`,
     section_abstract: 'Abstract',
     section_findings: 'Key findings',
-    section_takeaway: 'My takeaway',
     section_notes: 'Notes',
     section_meta: 'Metadata',
     section_cite: 'Cite',
@@ -64,9 +57,8 @@ const I18N = {
     label_journal: 'Venue',
     label_doi: 'DOI',
     label_url: 'URL',
-    label_relevance: 'Relevance',
     label_added: 'Added',
-    label_status: 'Status',
+    label_read: 'Read',
     action_pdf: 'Open PDF',
     action_pdf_inline: 'View PDF here',
     action_link: 'Open link',
@@ -80,7 +72,7 @@ const I18N = {
 const state = {
   papers: [],
   activeTags: new Set(),
-  status: '',
+  readFilter: '',   // '' = todos, 'unread', 'read'
   query: '',
   selectedSlug: null,
   lang: 'es',
@@ -91,7 +83,7 @@ const $ = (sel) => document.querySelector(sel);
 const els = {
   search: $('#search'),
   tagList: $('#tag-list'),
-  statusFilter: $('#status-filter'),
+  readFilter: $('#read-filter'),
   papers: $('#papers'),
   empty: $('#empty'),
   count: $('#count'),
@@ -139,7 +131,7 @@ function setLang(lang) {
 function readUrlState() {
   const params = new URLSearchParams(window.location.search);
   state.query = params.get('q') || '';
-  state.status = params.get('status') || '';
+  state.readFilter = params.get('read') || '';
   const tags = params.get('tag');
   state.activeTags = new Set(tags ? tags.split(',').filter(Boolean) : []);
   const hash = window.location.hash.slice(1);
@@ -149,7 +141,7 @@ function readUrlState() {
 function writeUrlState() {
   const params = new URLSearchParams();
   if (state.query) params.set('q', state.query);
-  if (state.status) params.set('status', state.status);
+  if (state.readFilter) params.set('read', state.readFilter);
   if (state.activeTags.size > 0) params.set('tag', [...state.activeTags].join(','));
   const qs = params.toString();
   const hash = state.selectedSlug ? '#' + state.selectedSlug : '';
@@ -162,7 +154,7 @@ function writeUrlState() {
 // Aplica el estado leído de la URL a los controles del DOM.
 function syncControlsFromState() {
   els.search.value = state.query;
-  els.statusFilter.value = state.status;
+  els.readFilter.value = state.readFilter;
 }
 
 // --- Helpers ---------------------------------------------------------------
@@ -173,7 +165,7 @@ function findPaper(slug) {
 // Construye el haystack searchable de un paper (lowercased).
 function buildHaystack(p) {
   const parts = [
-    p.title, p.abstract, p.my_takeaway, p.notes, p.source, p.journal, p.doi,
+    p.title, p.abstract, p.notes, p.source, p.journal, p.doi,
     (p.authors || []).join(' '),
     (p.tags || []).join(' '),
     (p.key_findings || []).join(' '),
@@ -199,7 +191,8 @@ function tagCounts(papers) {
 function filteredPapers() {
   const q = state.query.trim().toLowerCase();
   return state.papers.filter((p) => {
-    if (state.status && p.status !== state.status) return false;
+    if (state.readFilter === 'read' && !p.read) return false;
+    if (state.readFilter === 'unread' && p.read) return false;
     if (state.activeTags.size > 0) {
       const tags = new Set(p.tags || []);
       for (const t of state.activeTags) if (!tags.has(t)) return false;
@@ -209,10 +202,9 @@ function filteredPapers() {
   });
 }
 
-// Ordena: relevancia desc, año desc, título asc.
+// Ordena: año desc, título asc.
 function sortPapers(papers) {
   return [...papers].sort((a, b) => {
-    if (b.relevance !== a.relevance) return (b.relevance || 0) - (a.relevance || 0);
     if (b.year !== a.year) return (b.year || 0) - (a.year || 0);
     return (a.title || '').localeCompare(b.title || '');
   });
@@ -244,7 +236,7 @@ function renderList(papers) {
     title.textContent = p.title || '(sin título)';
     btn.appendChild(title);
 
-    if (p.status === 'read') {
+    if (p.read) {
       const badge = document.createElement('span');
       badge.className = 'status-badge read';
       badge.textContent = '✓';
@@ -394,11 +386,6 @@ function renderDetail(p) {
     els.detailBody.appendChild(section);
   }
 
-  // My takeaway
-  if (p.my_takeaway) {
-    els.detailBody.appendChild(makeSection(t('section_takeaway'), p.my_takeaway));
-  }
-
   // Notas
   if (p.notes) {
     els.detailBody.appendChild(makeSection(t('section_notes'), p.notes));
@@ -418,9 +405,8 @@ function renderDetail(p) {
   appendMeta(dl, t('label_doi'), p.doi,
     p.doi ? `https://doi.org/${p.doi}` : null);
   appendMeta(dl, t('label_url'), p.url, p.url);
-  appendMeta(dl, t('label_relevance'), p.relevance ? `${p.relevance}/5` : null);
   appendMeta(dl, t('label_added'), p.added_on);
-  appendMeta(dl, t('label_status'), p.status);
+  appendMeta(dl, t('label_read'), p.read ? '✓' : '—');
   metaSection.appendChild(dl);
   els.detailBody.appendChild(metaSection);
 
@@ -620,8 +606,8 @@ function onSearchInput(e) {
   }, 80);
 }
 
-function onStatusChange(e) {
-  state.status = e.target.value;
+function onReadFilterChange(e) {
+  state.readFilter = e.target.value;
   render();
 }
 
@@ -646,7 +632,7 @@ async function init() {
 
   // Listeners
   els.search.addEventListener('input', onSearchInput);
-  els.statusFilter.addEventListener('change', onStatusChange);
+  els.readFilter.addEventListener('change', onReadFilterChange);
   els.detailClose.addEventListener('click', closeDetail);
   els.langToggle.addEventListener('click', () => setLang(state.lang === 'es' ? 'en' : 'es'));
   document.addEventListener('keydown', onKeyDown);

@@ -7,12 +7,6 @@
 YEAR_MIN <- 1900L
 YEAR_MAX <- 2100L
 
-RELEVANCE_MIN <- 1L
-RELEVANCE_MAX <- 5L
-
-# Vocabulario cerrado del lifecycle de lectura de un paper.
-STATUS_VALIDOS <- c("toread", "reading", "read", "archived")
-
 # Slug: ASCII en minúscula con guiones bajos.
 # Justificación: garantiza portabilidad de paths entre OS y limpieza del JSON.
 SLUG_PATTERN <- "^[a-z0-9_]+$"

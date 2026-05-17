@@ -12,17 +12,14 @@ url: ""
 doi: ""              # opcional
 tags: []
 added_on: 2026-05-17
-relevance:           # entero 1-5
-status: toread       # toread | reading | read | archived
+read: false
 abstract: |
 
 key_findings:
   - ""
-my_takeaway: |
-
 ---
 
 <!--
 Notas largas en markdown libre debajo del frontmatter:
-citas con número de página, ideas conectadas, preguntas pendientes, etc.
+TL;DR en las primeras líneas, citas con número de página, ideas conectadas, etc.
 -->

@@ -19,8 +19,7 @@ tags:
   - transformers
   - attention
 added_on: 2026-05-17
-relevance: 5
-status: read
+read: true
 abstract: |
   The dominant sequence transduction models are based on complex recurrent or
   convolutional neural networks that include an encoder and a decoder. We propose
@@ -30,10 +29,10 @@ key_findings:
   - "La arquitectura Transformer reemplaza recurrencia y convolución por self-attention puro."
   - "Alcanza estado del arte en traducción automática con significativamente menos cómputo de entrenamiento."
   - "Sienta la base para toda la familia posterior de modelos (BERT, GPT, T5, etc.)."
-my_takeaway: |
-  Paper de ejemplo cargado para validar el pipeline.
-  **Borrar al ingresar el primer paper real de la librería.**
 ---
+
+Paper de ejemplo cargado para validar el pipeline.
+**Borrar al ingresar el primer paper real de la librería.**
 
 ## Notas
 

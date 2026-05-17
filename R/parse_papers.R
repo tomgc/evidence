@@ -54,11 +54,9 @@ read_paper_md <- function(path, pdfs_dir) {
     doi          = as.character(m$doi %||% NA_character_),
     tags         = as.character(m$tags %||% character()),
     added_on     = as.character(m$added_on %||% NA_character_),
-    relevance    = if (is.null(m$relevance)) NA_integer_ else as.integer(m$relevance),
-    status       = m$status %||% NA_character_,
+    read         = isTRUE(m$read),
     abstract     = m$abstract %||% NA_character_,
     key_findings = as.character(m$key_findings %||% character()),
-    my_takeaway  = m$my_takeaway %||% NA_character_,
     notes        = parsed$body,
     has_pdf      = file.exists(file.path(pdfs_dir, paste0(slug, ".pdf")))
   )
@@ -76,8 +74,7 @@ read_paper_md <- function(path, pdfs_dir) {
 validate_paper <- function(paper) {
   errores <- character()
 
-  # relevance es opcional: muchos papers entran como "toread" sin rating todavía.
-  for (campo in c("title", "year", "source", "url", "added_on", "status")) {
+  for (campo in c("title", "year", "source", "url", "added_on")) {
     if (.es_vacio(paper[[campo]])) {
       errores <- c(errores, sprintf("campo requerido vacío: %s", campo))
     }
@@ -89,16 +86,8 @@ validate_paper <- function(paper) {
     errores <- c(errores, sprintf("year fuera de rango [%d, %d]: %s",
                                   YEAR_MIN, YEAR_MAX, paper$year))
   }
-  if (!is.na(paper$relevance) &&
-      !(paper$relevance %in% RELEVANCE_MIN:RELEVANCE_MAX)) {
-    errores <- c(errores, sprintf("relevance debe ser entero %d-%d: %s",
-                                  RELEVANCE_MIN, RELEVANCE_MAX, paper$relevance))
-  }
-  if (!is.na(paper$status) && !(paper$status %in% STATUS_VALIDOS)) {
-    errores <- c(errores, sprintf(
-      "status inválido: '%s' (válidos: %s)",
-      paper$status, paste(STATUS_VALIDOS, collapse = ", ")
-    ))
+  if (!is.logical(paper$read)) {
+    errores <- c(errores, "read debe ser boolean (true/false)")
   }
   if (!grepl(SLUG_PATTERN, paper$slug)) {
     errores <- c(errores, sprintf(

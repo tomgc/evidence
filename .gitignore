@@ -13,3 +13,7 @@ tmp/
 
 # Sitio: data/ es copia derivada del pipeline R (canonical en data/processed/).
 site/data/
+
+# Inbox de PDFs sueltos (transit, no canonical).
+# Se recrea automáticamente al correr scripts/03_process_inbox.R.
+inbox/
