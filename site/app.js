@@ -391,6 +391,16 @@ function renderDetail(p) {
   els.detailBody.appendChild(citeSection);
 }
 
+// Renderiza markdown si marked.js está disponible; cae a textContent si no.
+function setMarkdownBody(el, text) {
+  if (typeof marked !== 'undefined' && marked.parse) {
+    el.innerHTML = marked.parse(text, { mangle: false, headerIds: false });
+    el.classList.add('md');
+  } else {
+    el.textContent = text;
+  }
+}
+
 function makeSection(heading, body) {
   const section = document.createElement('section');
   section.className = 'detail-section';
@@ -399,7 +409,7 @@ function makeSection(heading, body) {
   section.appendChild(h3);
   const div = document.createElement('div');
   div.className = 'body';
-  div.textContent = body;
+  setMarkdownBody(div, body);
   section.appendChild(div);
   return section;
 }

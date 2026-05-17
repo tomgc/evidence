@@ -6,10 +6,27 @@ Biblioteca personal de papers y evidencia relevante para mi trabajo. Sitio está
 
 ## Cómo correrlo
 
-### Agregar un paper
+### Agregar un paper (automático)
+
+```bash
+Rscript scripts/add_paper.R "<DOI | arXiv ID | URL | path a PDF>"
+```
+
+Ejemplos:
+
+```bash
+Rscript scripts/add_paper.R "10.1038/s41586-021-03819-2"
+Rscript scripts/add_paper.R "1706.03762"
+Rscript scripts/add_paper.R "https://arxiv.org/abs/1706.03762"
+Rscript scripts/add_paper.R "~/Downloads/un_paper.pdf"
+```
+
+El script resuelve metadata vía CrossRef o arXiv API, genera el slug, escribe el `.md` con el frontmatter pre-rellenado, descarga el PDF si la fuente es OA (arXiv), y regenera `papers.json`. Después solo queda editar el archivo para agregar `tags`, `relevance`, `key_findings` y tus notas.
+
+### Agregar un paper (manual)
 
 1. Copiar `data/raw/papers/_template.md` con un slug nuevo (snake_case ASCII, sin tildes ni espacios).
-2. Completar el frontmatter YAML y agregar notas largas en el cuerpo.
+2. Completar el frontmatter YAML y agregar notas largas en el cuerpo (soportan markdown completo: headings, listas, código, blockquotes, links).
 3. (Opcional) Colocar el PDF en `data/raw/pdfs/<slug>.pdf`.
 4. Correr el pipeline.
 

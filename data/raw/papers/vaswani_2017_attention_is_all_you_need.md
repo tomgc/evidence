@@ -32,11 +32,30 @@ key_findings:
   - "Sienta la base para toda la familia posterior de modelos (BERT, GPT, T5, etc.)."
 my_takeaway: |
   Paper de ejemplo cargado para validar el pipeline.
-  Borrar al ingresar el primer paper real de la librería.
+  **Borrar al ingresar el primer paper real de la librería.**
 ---
 
 ## Notas
 
-Este archivo es un placeholder para ejercitar el parser. El cuerpo permite
-notas largas en markdown libre: citas con número de página, ideas conectadas,
-preguntas pendientes, conexiones con otros papers, etc.
+Este archivo es un placeholder para ejercitar el parser y demostrar el
+rendering de markdown.
+
+### Lo que el cuerpo soporta
+
+- Encabezados de cualquier nivel
+- **Negritas**, *cursivas* y `código inline`
+- Listas con o sin orden
+- [Enlaces externos](https://arxiv.org/abs/1706.03762)
+- Bloques de código:
+
+```python
+import torch
+attention = torch.softmax(Q @ K.T / sqrt(d_k), dim=-1)
+output = attention @ V
+```
+
+> Citas en bloque, útiles para citar al autor con número de página.
+
+### Pendiente
+1. Decidir si vinculo este paper con `bert_2018` y `gpt_2018`.
+2. Revisar la sección 3.2 sobre multi-head attention.

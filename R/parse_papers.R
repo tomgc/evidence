@@ -75,7 +75,8 @@ validate_paper <- function(paper) {
   errores <- character()
   status_validos <- c("toread", "reading", "read", "archived")
 
-  for (campo in c("title", "year", "source", "url", "added_on", "relevance", "status")) {
+  # relevance es opcional: muchos papers entran como "toread" sin rating todavía.
+  for (campo in c("title", "year", "source", "url", "added_on", "status")) {
     if (.es_vacio(paper[[campo]])) {
       errores <- c(errores, sprintf("campo requerido vacío: %s", campo))
     }
