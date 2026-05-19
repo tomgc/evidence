@@ -21,7 +21,7 @@ Rscript scripts/add_paper.R "https://arxiv.org/abs/1706.03762"
 Rscript scripts/add_paper.R "~/Downloads/un_paper.pdf"
 ```
 
-El script resuelve metadata vía CrossRef o arXiv API, genera el slug, escribe el `.md` con el frontmatter pre-rellenado, descarga el PDF si la fuente es OA (arXiv), y regenera `papers.json`. Después solo queda editar el archivo para agregar `tags`, `relevance`, `key_findings` y tus notas.
+El script resuelve metadata vía CrossRef o arXiv API, genera el slug, escribe el `.md` con el frontmatter pre-rellenado, descarga el PDF si la fuente es OA (arXiv), y regenera `papers.json`. Después solo queda editar el archivo para agregar `tags`, `key_findings`, marcar `read: true` cuando lo hayas leído, y agregar notas en el cuerpo markdown.
 
 ### Agregar un paper (manual)
 

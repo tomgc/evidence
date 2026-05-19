@@ -1,6 +1,32 @@
 # CLAUDE.md — evidence
 
-Instrucciones permanentes para este repositorio.
+Librería personal de papers y evidencia relevante para el trabajo del autor. Sitio estático bilingüe servido por GitHub Pages, alimentado por pipeline R que parsea un `.md` por paper.
+
+## Stack
+
+- **R 4.5+** — pipeline (`scripts/01_build_data.R`, `add_paper.R`, `03_process_inbox.R`).
+- **Paquetes R:** here, yaml, jsonlite, purrr, httr2, xml2, pdftools, stringi (en `DESCRIPTION`).
+- **Web estático:** HTML/CSS/JS plano, sin frameworks. `marked@12` vendoreado local para markdown.
+- **CI/CD:** GitHub Actions → branch `gh-pages` → GitHub Pages.
+- **APIs externas:** CrossRef (metadata por DOI), arXiv (metadata + PDF OA).
+
+## Estructura de archivos relevantes
+
+```
+evidence/
+├── R/                       constants.R, parse_papers.R, fetchers.R
+├── scripts/                 01_build_data.R, 02_deploy.sh, add_paper.R, 03_process_inbox.R
+├── data/raw/papers/         <slug>.md (frontmatter YAML + cuerpo markdown)
+├── data/raw/pdfs/           <slug>.pdf (canonical, tracked)
+├── data/processed/          papers.json (canonical, regenerado)
+├── inbox/                   PDFs sueltos en transit (gitignored)
+├── site/                    HTML/CSS/JS del sitio
+├── docs/decisiones/         registros metodológicos (001, 002, 003, 004)
+├── .github/workflows/       deploy.yml (CI)
+└── DESCRIPTION              deps R
+```
+
+## Instrucciones permanentes para este repositorio.
 
 ## Flujo de trabajo
 
@@ -71,3 +97,11 @@ Cuando el usuario diga que leyó un paper (ej. "leí el AlphaFold, notas: ..."):
 - Branch `gh-pages` huérfana, historia descartable, force-push intencional.
 - Dependencias en `DESCRIPTION`, no `renv` (ver `docs/decisiones/003_*`).
 - Inbox de PDFs vive en `inbox/` (raíz, gitignored), no en `data/raw/pdfs/inbox/`.
+
+## Últimos cambios (más recientes primero)
+
+1. **Schema simplificado:** eliminado `relevance` y `my_takeaway`; `status` → `read` boolean; tags ahora las propongo yo desde abstract+título al ingestar.
+2. **Inbox top-level + verbal trigger:** `inbox/` en raíz, errores aislados en `inbox/_failed/`, trigger "procesa el inbox" documentado.
+3. **Refactor C.11/C.12/D.R:** `R/constants.R` centraliza constantes nombradas; `DESCRIPTION` declara deps; rutas centralizadas en `add_paper.R`; `docs/decisiones/001-003`.
+4. **Fases 4-9 implementadas:** `add_paper.R` (Crossref/arXiv/PDF), markdown rendering, GH Actions CI deploy, URL state, inbox processor, visor PDF inline.
+5. **Scaffolding inicial (fases 0-3):** estructura canónica, pipeline R `.md → papers.json`, sitio MVP bilingüe, deploy a `gh-pages`.
