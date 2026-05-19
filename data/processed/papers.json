@@ -11,7 +11,7 @@
     "read": false,
     "slug": "jumper_2021_highly_accurate_protein",
     "source": "paper",
-    "tags": [],
+    "tags": ["deep-learning", "protein-folding", "alphafold", "bioinformatics"],
     "title": "Highly accurate protein structure prediction with AlphaFold",
     "url": "https://doi.org/10.1038/s41586-021-03819-2",
     "year": 2021

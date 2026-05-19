@@ -40,7 +40,11 @@ source: "paper"
 journal: "Nature"
 url: "https://doi.org/10.1038/s41586-021-03819-2"
 doi: "10.1038/s41586-021-03819-2"
-tags: []
+tags:
+  - deep-learning
+  - protein-folding
+  - alphafold
+  - bioinformatics
 added_on: 2026-05-17
 read: false
 abstract: |
