@@ -1,15 +1,25 @@
 /* Variant: tag-centric — temas como cards grandes, navegación primero por tema.
-   Tags se rankean por frecuencia: top N son "primarios" (cards), resto secundarios (chips). */
+   Tags se rankean por frecuencia: top N son "primarios" (cards), resto secundarios (chips).
+   Paleta custom del autor — color sólo donde aporta significado. */
 
 :root {
-  --bg:          #f6f6f4;
+  /* Superficies */
+  --bg:          #ffffff;
   --surface:     #ffffff;
-  --ink:         #1a1a1a;
-  --muted:       #6b6b6b;
-  --rule:        #e0ddd6;
-  --accent:      #0f766e;
-  --accent-soft: #ccfbf1;
-  --accent-dark: #115e59;
+  --surface-soft:#fff6e0;        /* crema — highlights muy suaves */
+  /* Texto */
+  --ink:         #1a1a1a;        /* cuerpo */
+  --brand:       #4a2746;        /* púrpura — brand + headings */
+  --muted:       #747474;        /* gris — secundario */
+  --rule:        #e8e3da;        /* tan claro — bordes/reglas */
+  /* Interacción */
+  --accent:      #0062a0;        /* azul — links, estado activo */
+  --accent-soft: #e5f0f7;        /* azul muy diluido */
+  /* Jerarquía / estado */
+  --primary:      #e88663;       /* coral — tag primario */
+  --primary-soft: #fdebe1;       /* coral muy diluido */
+  --success:      #75924e;       /* oliva — leído (✓) */
+  /* Atajos */
   --shadow:      0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
   --radius:      8px;
 }
@@ -43,7 +53,7 @@ header {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--brand);
   letter-spacing: 0.02em;
 }
 .tagline {
@@ -90,9 +100,9 @@ header {
 }
 .header-tag.primary {
   font-weight: 600;
-  background: var(--accent-soft);
-  color: var(--accent-dark);
-  border-color: var(--accent);
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 .header-tag .count {
   margin-left: 0.3rem;
@@ -100,7 +110,7 @@ header {
   font-size: 0.72rem;
   font-weight: normal;
 }
-.header-tag.primary .count { color: var(--accent); }
+.header-tag.primary .count { color: var(--primary); }
 .header-tag.active {
   background: var(--accent);
   color: var(--surface);
@@ -109,7 +119,7 @@ header {
 .header-tag.active .count { color: rgba(255,255,255,0.8); }
 .header-tag:hover:not(.active) {
   border-color: var(--accent);
-  color: var(--accent-dark);
+  color: var(--accent);
 }
 
 #q {
@@ -157,13 +167,13 @@ h2 {
 .primary-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 2px 4px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08);
-  border-color: var(--accent-soft);
+  border-color: var(--primary);
 }
 .primary-card .tag-name {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.2rem;
-  color: var(--accent-dark);
+  color: var(--primary);
 }
 .primary-card .tag-count {
   font-size: 0.85rem;
@@ -207,14 +217,14 @@ h2 {
 .secondary-chip:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
-  color: var(--accent-dark);
+  color: var(--accent);
 }
 
 /* Tag-papers view */
 #tag-papers h2 {
   font-size: 1.6rem;
   margin-top: 0;
-  color: var(--accent-dark);
+  color: var(--brand);
 }
 #papers-list {
   list-style: none;
@@ -257,7 +267,7 @@ h2 {
 }
 .paper-card .mini-tag.active {
   background: var(--accent-soft);
-  color: var(--accent-dark);
+  color: var(--accent);
   border-color: var(--accent);
 }
 
@@ -286,6 +296,7 @@ h2 {
   font-size: 1.4rem;
   line-height: 1.3;
   margin: 0 0 0.5rem 0;
+  color: var(--brand);
 }
 .muted { color: var(--muted); }
 .italic { font-style: italic; margin: 0.25rem 0 0 0; }
@@ -303,12 +314,12 @@ h2 {
 .section-body code {
   font-family: ui-monospace, SFMono-Regular, monospace;
   font-size: 0.85em;
-  background: var(--bg);
+  background: var(--surface-soft);
   padding: 0.05rem 0.3rem;
   border-radius: 3px;
 }
 .section-body pre {
-  background: var(--bg);
+  background: var(--surface-soft);
   padding: 0.6rem 0.8rem;
   border-radius: var(--radius);
   overflow-x: auto;
@@ -332,7 +343,7 @@ h2 {
   font-size: 0.8rem;
   padding: 0.25rem 0.65rem;
   background: var(--accent-soft);
-  color: var(--accent-dark);
+  color: var(--accent);
   border-radius: 999px;
   cursor: pointer;
   border: 1px solid var(--accent);
