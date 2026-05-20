@@ -3,54 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>evidence</title>
+  <title>evidence · temas</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <h1 class="brand">evidence</h1>
-    <button id="lang-toggle" class="lang-toggle" type="button" aria-label="Toggle language">EN</button>
+  <header>
+    <div class="brand">
+      <h1>evidence</h1>
+      <p class="tagline">explorar por tema</p>
+    </div>
+    <button id="back" class="hidden" type="button">← Todos los temas</button>
+    <nav id="header-tags" class="header-tags" aria-label="Atajos por tema"></nav>
+    <input id="q" type="search" placeholder="buscar…" autocomplete="off">
   </header>
 
-  <div class="layout">
-    <aside class="sidebar" aria-label="Filtros">
-      <label class="search-field">
-        <span class="visually-hidden" data-i18n="search_label">Buscar</span>
-        <input
-          id="search"
-          type="search"
-          autocomplete="off"
-          data-i18n-attr="placeholder:search_placeholder"
-          placeholder="Buscar título, autor, tag, notas…">
-      </label>
+  <main>
+    <!-- Landing: categorías -->
+    <section id="categories">
+      <h2>Temas principales</h2>
+      <p class="muted-sub">Los temas más representados en tu librería.</p>
+      <div class="primary-grid" id="primary-tags"></div>
 
-      <section class="filter-group">
-        <h2 data-i18n="tags_heading">Tags</h2>
-        <ul id="tag-list" class="tag-list"></ul>
-      </section>
+      <h2 class="secondary-heading">Otros temas</h2>
+      <div class="secondary-row" id="secondary-tags"></div>
+    </section>
 
-      <section class="filter-group">
-        <h2 data-i18n="read_heading">Lectura</h2>
-        <select id="read-filter">
-          <option value="" data-i18n="read_all">Todos</option>
-          <option value="unread" data-i18n="read_unread">No leídos</option>
-          <option value="read" data-i18n="read_read">Leídos</option>
-        </select>
-      </section>
+    <!-- Papers para un tag -->
+    <section id="tag-papers" class="hidden">
+      <h2 id="tag-title"></h2>
+      <p id="tag-meta" class="muted-sub"></p>
+      <ol id="papers-list"></ol>
+    </section>
 
-      <p id="count" class="count" aria-live="polite"></p>
-    </aside>
-
-    <main class="list-pane">
-      <ol id="papers" class="papers"></ol>
-      <p id="empty" class="empty hidden" data-i18n="empty_state">No hay papers que coincidan con los filtros.</p>
-    </main>
-
-    <aside id="detail" class="detail-pane hidden" aria-label="Detalle del paper">
-      <button id="detail-close" class="detail-close" type="button" aria-label="Cerrar">×</button>
-      <div id="detail-body"></div>
-    </aside>
-  </div>
+    <!-- Detalle de un paper -->
+    <section id="detail" class="hidden"></section>
+  </main>
 
   <script src="vendor/marked.min.js"></script>
   <script src="app.js"></script>

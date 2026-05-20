@@ -1,661 +1,216 @@
-// evidence — app.js
-// Carga papers.json, renderiza lista, búsqueda, filtros, detalle y citas.
-// Sin dependencias externas. Datos vienen de data/papers.json.
-
+// evidence — sitio principal.
+// Landing por temas, drill-down al tag, detalle con markdown.
+// Los tags primarios (top N por frecuencia) se renderean como cards grandes;
+// el resto como chips. El ranking por frecuencia podría sustituirse en el
+// futuro por una taxonomía curada en docs/taxonomy.yaml.
 'use strict';
 
-const DATA_URL = 'data/papers.json';
-const LANG_KEY = 'evidence.lang';
-
-const I18N = {
-  es: {
-    search_label: 'Buscar',
-    search_placeholder: 'Buscar título, autor, tag, notas…',
-    tags_heading: 'Tags',
-    read_heading: 'Lectura',
-    read_all: 'Todos',
-    read_unread: 'No leídos',
-    read_read: 'Leídos',
-    empty_state: 'No hay papers que coincidan con los filtros.',
-    count: (n) => `${n} paper${n === 1 ? '' : 's'}`,
-    section_abstract: 'Abstract',
-    section_findings: 'Hallazgos clave',
-    section_notes: 'Notas',
-    section_meta: 'Metadatos',
-    section_cite: 'Citar',
-    label_year: 'Año',
-    label_source: 'Tipo',
-    label_journal: 'Publicación',
-    label_doi: 'DOI',
-    label_url: 'URL',
-    label_added: 'Agregado',
-    label_read: 'Leído',
-    action_pdf: 'Abrir PDF',
-    action_pdf_inline: 'Ver PDF aquí',
-    action_link: 'Abrir enlace',
-    copy: 'Copiar',
-    copied: 'Copiado',
-    lang_toggle: 'EN',
-  },
-  en: {
-    search_label: 'Search',
-    search_placeholder: 'Search title, author, tag, notes…',
-    tags_heading: 'Tags',
-    read_heading: 'Reading',
-    read_all: 'All',
-    read_unread: 'Unread',
-    read_read: 'Read',
-    empty_state: 'No papers match the current filters.',
-    count: (n) => `${n} paper${n === 1 ? '' : 's'}`,
-    section_abstract: 'Abstract',
-    section_findings: 'Key findings',
-    section_notes: 'Notes',
-    section_meta: 'Metadata',
-    section_cite: 'Cite',
-    label_year: 'Year',
-    label_source: 'Type',
-    label_journal: 'Venue',
-    label_doi: 'DOI',
-    label_url: 'URL',
-    label_added: 'Added',
-    label_read: 'Read',
-    action_pdf: 'Open PDF',
-    action_pdf_inline: 'View PDF here',
-    action_link: 'Open link',
-    copy: 'Copy',
-    copied: 'Copied',
-    lang_toggle: 'ES',
-  },
-};
-
-// --- Estado ----------------------------------------------------------------
 const state = {
   papers: [],
-  activeTags: new Set(),
-  readFilter: '',   // '' = todos, 'unread', 'read'
-  query: '',
-  selectedSlug: null,
-  lang: 'es',
+  view: 'categories', // 'categories' | 'tag' | 'detail' | 'search'
+  activeTag: null,
+  activeSlug: null,
 };
+const PAPERS_URL = 'data/papers.json';
+const PRIMARY_TOP_N = 3;
 
-// --- DOM refs --------------------------------------------------------------
 const $ = (sel) => document.querySelector(sel);
-const els = {
-  search: $('#search'),
-  tagList: $('#tag-list'),
-  readFilter: $('#read-filter'),
-  papers: $('#papers'),
-  empty: $('#empty'),
-  count: $('#count'),
-  detail: $('#detail'),
-  detailBody: $('#detail-body'),
-  detailClose: $('#detail-close'),
-  langToggle: $('#lang-toggle'),
-  layout: document.querySelector('.layout'),
+const esc = (s) =>
+  String(s ?? '').replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+  );
+
+const primerAutor = (p) => {
+  const a = (p.authors || [])[0] || '';
+  const apellido = a.split(',')[0] || a;
+  return apellido + ((p.authors || []).length > 1 ? ' et al.' : '');
 };
 
-// --- i18n ------------------------------------------------------------------
-function t(key) {
-  return I18N[state.lang][key] ?? key;
-}
-
-function applyI18n() {
-  document.documentElement.lang = state.lang;
-  document.querySelectorAll('[data-i18n]').forEach((el) => {
-    const key = el.dataset.i18n;
-    const val = I18N[state.lang][key];
-    if (typeof val === 'string') el.textContent = val;
-  });
-  document.querySelectorAll('[data-i18n-attr]').forEach((el) => {
-    const spec = el.dataset.i18nAttr;
-    spec.split(';').forEach((pair) => {
-      const [attr, key] = pair.split(':').map((s) => s.trim());
-      const val = I18N[state.lang][key];
-      if (typeof val === 'string') el.setAttribute(attr, val);
-    });
-  });
-  els.langToggle.textContent = t('lang_toggle');
-}
-
-function setLang(lang) {
-  state.lang = lang;
-  localStorage.setItem(LANG_KEY, lang);
-  applyI18n();
-  render();
-  if (state.selectedSlug) renderDetail(findPaper(state.selectedSlug));
-}
-
-// --- URL state ------------------------------------------------------------
-// Sincroniza ?q=...&tag=t1,t2&status=read#slug con el estado interno.
-
-function readUrlState() {
-  const params = new URLSearchParams(window.location.search);
-  state.query = params.get('q') || '';
-  state.readFilter = params.get('read') || '';
-  const tags = params.get('tag');
-  state.activeTags = new Set(tags ? tags.split(',').filter(Boolean) : []);
-  const hash = window.location.hash.slice(1);
-  state.selectedSlug = hash || null;
-}
-
-function writeUrlState() {
-  const params = new URLSearchParams();
-  if (state.query) params.set('q', state.query);
-  if (state.readFilter) params.set('read', state.readFilter);
-  if (state.activeTags.size > 0) params.set('tag', [...state.activeTags].join(','));
-  const qs = params.toString();
-  const hash = state.selectedSlug ? '#' + state.selectedSlug : '';
-  const newUrl = window.location.pathname + (qs ? '?' + qs : '') + hash;
-  if (newUrl !== window.location.pathname + window.location.search + window.location.hash) {
-    history.replaceState(null, '', newUrl);
-  }
-}
-
-// Aplica el estado leído de la URL a los controles del DOM.
-function syncControlsFromState() {
-  els.search.value = state.query;
-  els.readFilter.value = state.readFilter;
-}
-
-// --- Helpers ---------------------------------------------------------------
-function findPaper(slug) {
-  return state.papers.find((p) => p.slug === slug);
-}
-
-// Construye el haystack searchable de un paper (lowercased).
-function buildHaystack(p) {
-  const parts = [
-    p.title, p.abstract, p.notes, p.source, p.journal, p.doi,
-    (p.authors || []).join(' '),
-    (p.tags || []).join(' '),
-    (p.key_findings || []).join(' '),
-    String(p.year ?? ''),
-  ];
-  return parts.filter(Boolean).join(' ').toLowerCase();
-}
-
-// Lista de tags únicos con conteo.
-function tagCounts(papers) {
+function tagFrequency() {
   const counts = new Map();
-  for (const p of papers) {
-    for (const tag of (p.tags || [])) {
-      counts.set(tag, (counts.get(tag) || 0) + 1);
-    }
+  for (const p of state.papers) {
+    for (const t of (p.tags || [])) counts.set(t, (counts.get(t) || 0) + 1);
   }
-  return [...counts.entries()].sort((a, b) =>
-    b[1] - a[1] || a[0].localeCompare(b[0])
+  return [...counts.entries()].sort(
+    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0])
   );
 }
 
-// Filtra papers según estado actual.
-function filteredPapers() {
-  const q = state.query.trim().toLowerCase();
-  return state.papers.filter((p) => {
-    if (state.readFilter === 'read' && !p.read) return false;
-    if (state.readFilter === 'unread' && p.read) return false;
-    if (state.activeTags.size > 0) {
-      const tags = new Set(p.tags || []);
-      for (const t of state.activeTags) if (!tags.has(t)) return false;
-    }
-    if (q && !p._haystack.includes(q)) return false;
-    return true;
+function setView(v) {
+  state.view = v;
+  $('#categories').classList.toggle('hidden', v !== 'categories');
+  $('#tag-papers').classList.toggle('hidden', v !== 'tag' && v !== 'search');
+  $('#detail').classList.toggle('hidden', v !== 'detail');
+  $('#back').classList.toggle('hidden', v === 'categories');
+  // Refleja el tag activo en la nav del header.
+  document.querySelectorAll('.header-tag').forEach((el) => {
+    el.classList.toggle('active', el.dataset.tag === state.activeTag);
   });
 }
 
-// Ordena: año desc, título asc.
-function sortPapers(papers) {
-  return [...papers].sort((a, b) => {
-    if (b.year !== a.year) return (b.year || 0) - (a.year || 0);
-    return (a.title || '').localeCompare(b.title || '');
-  });
-}
-
-// --- Render ----------------------------------------------------------------
-function render() {
-  const filtered = sortPapers(filteredPapers());
-  renderList(filtered);
-  renderTags();
-  els.count.textContent = t('count')(filtered.length);
-  els.empty.classList.toggle('hidden', filtered.length > 0);
-  writeUrlState();
-}
-
-function renderList(papers) {
-  els.papers.innerHTML = '';
-  const frag = document.createDocumentFragment();
-  for (const p of papers) {
-    const li = document.createElement('li');
-    const btn = document.createElement('button');
-    btn.className = 'paper-row';
-    btn.type = 'button';
-    btn.dataset.slug = p.slug;
-    if (p.slug === state.selectedSlug) btn.classList.add('active');
-
-    const title = document.createElement('span');
-    title.className = 'paper-title';
-    title.textContent = p.title || '(sin título)';
-    btn.appendChild(title);
-
-    if (p.read) {
-      const badge = document.createElement('span');
-      badge.className = 'status-badge read';
-      badge.textContent = '✓';
-      btn.appendChild(badge);
-    }
-
-    const meta = document.createElement('div');
-    meta.className = 'paper-meta';
-    const authorsShort = (p.authors || []).length > 0
-      ? p.authors[0] + ((p.authors || []).length > 1 ? ' et al.' : '')
-      : '';
-    const year = p.year ? ` · ${p.year}` : '';
-    meta.textContent = authorsShort + year;
-    btn.appendChild(meta);
-
-    if ((p.tags || []).length > 0) {
-      const tagsBox = document.createElement('div');
-      tagsBox.className = 'paper-tags';
-      for (const tag of p.tags) {
-        const chip = document.createElement('span');
-        chip.className = 'chip';
-        chip.textContent = tag;
-        tagsBox.appendChild(chip);
-      }
-      btn.appendChild(tagsBox);
-    }
-
-    btn.addEventListener('click', () => selectPaper(p.slug));
-    li.appendChild(btn);
-    frag.appendChild(li);
-  }
-  els.papers.appendChild(frag);
-}
-
-function renderTags() {
-  const counts = tagCounts(state.papers);
-  els.tagList.innerHTML = '';
-  for (const [tag, n] of counts) {
-    const li = document.createElement('li');
+// Renderiza los tags en el header (atajos siempre visibles).
+// Primarios (top N por frecuencia) van resaltados; el resto plano.
+function renderHeaderTags() {
+  const freq = tagFrequency();
+  const primaryNames = new Set(freq.slice(0, PRIMARY_TOP_N).map(([t]) => t));
+  const nav = $('#header-tags');
+  nav.innerHTML = '';
+  for (const [tag, count] of freq) {
     const btn = document.createElement('button');
     btn.type = 'button';
+    btn.className = 'header-tag' + (primaryNames.has(tag) ? ' primary' : '');
     btn.dataset.tag = tag;
-    btn.textContent = `${tag} (${n})`;
-    if (state.activeTags.has(tag)) btn.classList.add('active');
-    btn.addEventListener('click', () => toggleTag(tag));
-    li.appendChild(btn);
-    els.tagList.appendChild(li);
+    btn.innerHTML = `${tag}<span class="count">${count}</span>`;
+    btn.addEventListener('click', () => showTagPapers(tag));
+    nav.appendChild(btn);
   }
 }
 
-// --- Detalle ---------------------------------------------------------------
-function selectPaper(slug) {
-  state.selectedSlug = slug;
-  writeUrlState();
-  const p = findPaper(slug);
-  if (!p) {
-    closeDetail();
-    return;
+function showCategories() {
+  setView('categories');
+  state.activeTag = null;
+  state.activeSlug = null;
+
+  const freq = tagFrequency();
+  const primary = freq.slice(0, PRIMARY_TOP_N);
+  const secondary = freq.slice(PRIMARY_TOP_N);
+
+  const pg = $('#primary-tags');
+  pg.innerHTML = '';
+  for (const [tag, count] of primary) {
+    const sample = state.papers.find((p) => (p.tags || []).includes(tag));
+    const card = document.createElement('div');
+    card.className = 'primary-card';
+    card.innerHTML = `
+      <div class="tag-name">${esc(tag)}</div>
+      <div class="tag-count">${count} paper${count === 1 ? '' : 's'}</div>
+      ${sample ? `<div class="preview"><div class="preview-title">${esc(sample.title)}</div><div>${esc(primerAutor(sample))}${sample.year ? ', ' + sample.year : ''}</div></div>` : ''}
+    `;
+    card.addEventListener('click', () => showTagPapers(tag));
+    pg.appendChild(card);
   }
-  renderDetail(p);
-  els.layout.classList.add('detail-open');
-  els.detail.classList.remove('hidden');
-  // Reflejar selección en la lista sin re-render completo
-  document.querySelectorAll('.paper-row').forEach((el) => {
-    el.classList.toggle('active', el.dataset.slug === slug);
+
+  const sr = $('#secondary-tags');
+  sr.innerHTML = '';
+  if (secondary.length === 0) {
+    sr.innerHTML = '<span class="muted-sub">No hay otros temas todavía.</span>';
+  }
+  for (const [tag, count] of secondary) {
+    const chip = document.createElement('button');
+    chip.className = 'secondary-chip';
+    chip.type = 'button';
+    chip.innerHTML = `${esc(tag)}<span class="count">${count}</span>`;
+    chip.addEventListener('click', () => showTagPapers(tag));
+    sr.appendChild(chip);
+  }
+}
+
+function renderPapersList(papers, activeTag) {
+  const list = $('#papers-list');
+  list.innerHTML = '';
+  for (const p of papers) {
+    const card = document.createElement('li');
+    card.className = 'paper-card';
+    card.innerHTML = `
+      <div class="title">${esc(p.title)}</div>
+      <div class="authors">${esc(primerAutor(p))}${p.year ? ' · ' + p.year : ''}</div>
+      <div class="mini-tags">
+        ${(p.tags || [])
+          .map((t) => `<span class="mini-tag${t === activeTag ? ' active' : ''}">${esc(t)}</span>`)
+          .join('')}
+      </div>
+    `;
+    card.addEventListener('click', () => showDetail(p.slug));
+    list.appendChild(card);
+  }
+}
+
+function showTagPapers(tag) {
+  state.activeTag = tag;
+  setView('tag');
+  $('#tag-title').textContent = tag;
+  const papers = state.papers
+    .filter((p) => (p.tags || []).includes(tag))
+    .sort((a, b) => (b.year || 0) - (a.year || 0));
+  $('#tag-meta').textContent =
+    `${papers.length} paper${papers.length === 1 ? '' : 's'} en este tema`;
+  renderPapersList(papers, tag);
+}
+
+function showSearch(q) {
+  state.activeTag = null;
+  setView('search');
+  $('#tag-title').textContent = `Búsqueda: "${q}"`;
+  const ql = q.toLowerCase();
+  const matches = state.papers.filter((p) => {
+    const hay = [p.title, p.abstract, (p.authors || []).join(' '),
+                 (p.tags || []).join(' '), (p.key_findings || []).join(' '),
+                 p.notes, p.journal, p.source].filter(Boolean).join(' ').toLowerCase();
+    return hay.includes(ql);
+  });
+  $('#tag-meta').textContent =
+    `${matches.length} paper${matches.length === 1 ? '' : 's'} encontrados`;
+  renderPapersList(matches, null);
+}
+
+function showDetail(slug) {
+  const p = state.papers.find((x) => x.slug === slug);
+  if (!p) return;
+  state.activeSlug = slug;
+  setView('detail');
+
+  const venue = [p.journal || p.source, p.year].filter(Boolean).join(' · ');
+  const findings = (p.key_findings || []).filter(Boolean);
+  const notesHtml = p.notes
+    ? (typeof marked !== 'undefined' ? marked.parse(p.notes) : esc(p.notes))
+    : '';
+
+  $('#detail').innerHTML = `
+    <button class="back-btn" id="back-from-detail">← Volver</button>
+    <h2 class="title">${esc(p.title)}</h2>
+    <p class="muted">${esc((p.authors || []).join(', '))}</p>
+    ${venue ? `<p class="muted italic">${esc(venue)}</p>` : ''}
+    ${p.abstract ? `<div class="section-h">Abstract</div><div class="section-body"><p>${esc(p.abstract)}</p></div>` : ''}
+    ${findings.length ? `<div class="section-h">Hallazgos clave</div><div class="section-body"><ul>${findings.map((f) => `<li>${esc(f)}</li>`).join('')}</ul></div>` : ''}
+    ${notesHtml ? `<div class="section-h">Notas</div><div class="section-body">${notesHtml}</div>` : ''}
+    ${(p.tags || []).length ? `<div class="detail-tags">${(p.tags || []).map((t) => `<span class="chip" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</div>` : ''}
+    <div class="detail-links">
+      ${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">Enlace</a>` : ''}
+      ${p.has_pdf ? `<a href="data/pdfs/${esc(p.slug)}.pdf" target="_blank" rel="noopener">PDF</a>` : ''}
+    </div>
+  `;
+
+  $('#back-from-detail').addEventListener('click', () => {
+    if (state.activeTag) showTagPapers(state.activeTag);
+    else showCategories();
+  });
+  $('#detail').querySelectorAll('.chip').forEach((el) => {
+    el.addEventListener('click', () => showTagPapers(el.dataset.tag));
   });
 }
 
-function closeDetail() {
-  state.selectedSlug = null;
-  writeUrlState();
-  els.layout.classList.remove('detail-open');
-  els.detail.classList.add('hidden');
-  document.querySelectorAll('.paper-row.active').forEach((el) => el.classList.remove('active'));
-}
-
-function renderDetail(p) {
-  els.detailBody.innerHTML = '';
-
-  const h = document.createElement('h2');
-  h.className = 'detail-title';
-  h.textContent = p.title || '';
-  els.detailBody.appendChild(h);
-
-  if ((p.authors || []).length > 0) {
-    const authors = document.createElement('p');
-    authors.className = 'detail-authors';
-    authors.textContent = p.authors.join(', ');
-    els.detailBody.appendChild(authors);
-  }
-
-  if (p.journal || p.source || p.year) {
-    const venue = document.createElement('p');
-    venue.className = 'detail-venue';
-    const bits = [p.journal || p.source, p.year].filter(Boolean);
-    venue.textContent = bits.join(' · ');
-    els.detailBody.appendChild(venue);
-  }
-
-  // Acciones (PDF + URL)
-  const actions = document.createElement('div');
-  actions.className = 'detail-actions';
-  if (p.has_pdf) {
-    const pdfHref = `data/pdfs/${p.slug}.pdf`;
-    // Inline toggle
-    const inlineBtn = document.createElement('button');
-    inlineBtn.type = 'button';
-    inlineBtn.textContent = t('action_pdf_inline');
-    inlineBtn.className = 'action-btn';
-    inlineBtn.addEventListener('click', () => togglePdfInline(p.slug, pdfHref));
-    actions.appendChild(inlineBtn);
-    // External
-    const a = document.createElement('a');
-    a.href = pdfHref;
-    a.target = '_blank'; a.rel = 'noopener';
-    a.textContent = t('action_pdf');
-    actions.appendChild(a);
-  }
-  if (p.url) {
-    const a = document.createElement('a');
-    a.href = p.url;
-    a.target = '_blank'; a.rel = 'noopener';
-    a.textContent = t('action_link');
-    actions.appendChild(a);
-  }
-  if (actions.children.length > 0) els.detailBody.appendChild(actions);
-
-  // Abstract
-  if (p.abstract) {
-    els.detailBody.appendChild(makeSection(t('section_abstract'), p.abstract));
-  }
-
-  // Key findings
-  if ((p.key_findings || []).length > 0) {
-    const section = document.createElement('section');
-    section.className = 'detail-section';
-    const h3 = document.createElement('h3');
-    h3.textContent = t('section_findings');
-    section.appendChild(h3);
-    const ul = document.createElement('ul');
-    for (const f of p.key_findings) {
-      const li = document.createElement('li');
-      li.textContent = f;
-      ul.appendChild(li);
-    }
-    section.appendChild(ul);
-    els.detailBody.appendChild(section);
-  }
-
-  // Notas
-  if (p.notes) {
-    els.detailBody.appendChild(makeSection(t('section_notes'), p.notes));
-  }
-
-  // Metadatos
-  const metaSection = document.createElement('section');
-  metaSection.className = 'detail-section';
-  const metaH = document.createElement('h3');
-  metaH.textContent = t('section_meta');
-  metaSection.appendChild(metaH);
-  const dl = document.createElement('dl');
-  dl.className = 'detail-meta-grid';
-  appendMeta(dl, t('label_year'), p.year);
-  appendMeta(dl, t('label_source'), p.source);
-  appendMeta(dl, t('label_journal'), p.journal);
-  appendMeta(dl, t('label_doi'), p.doi,
-    p.doi ? `https://doi.org/${p.doi}` : null);
-  appendMeta(dl, t('label_url'), p.url, p.url);
-  appendMeta(dl, t('label_added'), p.added_on);
-  appendMeta(dl, t('label_read'), p.read ? '✓' : '—');
-  metaSection.appendChild(dl);
-  els.detailBody.appendChild(metaSection);
-
-  // Citas
-  const citeSection = document.createElement('section');
-  citeSection.className = 'detail-section';
-  const citeH = document.createElement('h3');
-  citeH.textContent = t('section_cite');
-  citeSection.appendChild(citeH);
-  citeSection.appendChild(makeCiteBlock('APA', formatAPA(p)));
-  citeSection.appendChild(makeCiteBlock('BibTeX', formatBibtex(p)));
-  els.detailBody.appendChild(citeSection);
-}
-
-// Renderiza markdown si marked.js está disponible; cae a textContent si no.
-function setMarkdownBody(el, text) {
-  if (typeof marked !== 'undefined' && marked.parse) {
-    el.innerHTML = marked.parse(text, { mangle: false, headerIds: false });
-    el.classList.add('md');
-  } else {
-    el.textContent = text;
-  }
-}
-
-function makeSection(heading, body) {
-  const section = document.createElement('section');
-  section.className = 'detail-section';
-  const h3 = document.createElement('h3');
-  h3.textContent = heading;
-  section.appendChild(h3);
-  const div = document.createElement('div');
-  div.className = 'body';
-  setMarkdownBody(div, body);
-  section.appendChild(div);
-  return section;
-}
-
-function appendMeta(dl, label, value, href) {
-  if (value === null || value === undefined || value === '') return;
-  const dt = document.createElement('dt');
-  dt.textContent = label;
-  const dd = document.createElement('dd');
-  if (href) {
-    const a = document.createElement('a');
-    a.href = href; a.target = '_blank'; a.rel = 'noopener';
-    a.textContent = String(value);
-    dd.appendChild(a);
-  } else {
-    dd.textContent = String(value);
-  }
-  dl.appendChild(dt);
-  dl.appendChild(dd);
-}
-
-function makeCiteBlock(label, text) {
-  const wrap = document.createElement('div');
-  wrap.style.marginTop = '0.5rem';
-
-  const small = document.createElement('div');
-  small.style.fontSize = '0.7rem';
-  small.style.color = 'var(--text-muted)';
-  small.style.marginBottom = '0.2rem';
-  small.textContent = label;
-  wrap.appendChild(small);
-
-  const block = document.createElement('div');
-  block.className = 'cite-block';
-  block.textContent = text;
-
-  const btn = document.createElement('button');
-  btn.className = 'cite-copy';
-  btn.type = 'button';
-  btn.textContent = t('copy');
-  btn.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      btn.textContent = t('copied');
-      btn.classList.add('copied');
-      setTimeout(() => {
-        btn.textContent = t('copy');
-        btn.classList.remove('copied');
-      }, 1500);
-    } catch (e) {
-      // Fallback silencioso: seleccionar el texto.
-      const range = document.createRange();
-      range.selectNodeContents(block);
-      const sel = window.getSelection();
-      sel.removeAllRanges(); sel.addRange(range);
-    }
+function setupListeners() {
+  $('#back').addEventListener('click', () => {
+    if (state.view === 'detail' && state.activeTag) showTagPapers(state.activeTag);
+    else showCategories();
   });
-  block.appendChild(btn);
-  wrap.appendChild(block);
-  return wrap;
+  let qTimer;
+  $('#q').addEventListener('input', (e) => {
+    clearTimeout(qTimer);
+    qTimer = setTimeout(() => {
+      const v = e.target.value.trim();
+      if (!v) showCategories();
+      else showSearch(v);
+    }, 80);
+  });
 }
 
-// --- Citas -----------------------------------------------------------------
-function authorInitial(name) {
-  // "Vaswani, Ashish" → "A."
-  // "Ashish Vaswani" → "A."
-  let first;
-  if (name.includes(',')) {
-    first = name.split(',')[1]?.trim() || '';
-  } else {
-    const parts = name.trim().split(/\s+/);
-    first = parts[0] || '';
-  }
-  return first ? first.charAt(0) + '.' : '';
-}
-
-function authorLast(name) {
-  if (name.includes(',')) return name.split(',')[0].trim();
-  const parts = name.trim().split(/\s+/);
-  return parts[parts.length - 1] || name;
-}
-
-function formatAPA(p) {
-  const authors = (p.authors || []).map((a) => `${authorLast(a)}, ${authorInitial(a)}`);
-  let authorsStr = '';
-  if (authors.length === 1) authorsStr = authors[0];
-  else if (authors.length > 1) {
-    authorsStr = authors.slice(0, -1).join(', ') + ', & ' + authors[authors.length - 1];
-  }
-  const year = p.year ? ` (${p.year}).` : '';
-  const title = p.title ? ` ${p.title}.` : '';
-  const venue = p.journal ? ` ${p.journal}.` : (p.source ? ` ${p.source}.` : '');
-  const doi = p.doi ? ` https://doi.org/${p.doi}` : (p.url ? ` ${p.url}` : '');
-  return `${authorsStr}${year}${title}${venue}${doi}`.trim();
-}
-
-function formatBibtex(p) {
-  const type = p.journal ? 'article' : 'misc';
-  const lines = [`@${type}{${p.slug},`];
-  const authors = (p.authors || []).join(' and ');
-  if (authors) lines.push(`  author    = {${authors}},`);
-  if (p.title) lines.push(`  title     = {${p.title}},`);
-  if (p.year) lines.push(`  year      = {${p.year}},`);
-  if (p.journal) lines.push(`  journal   = {${p.journal}},`);
-  if (p.doi) lines.push(`  doi       = {${p.doi}},`);
-  if (p.url) lines.push(`  url       = {${p.url}},`);
-  // Quitar coma final de la última línea de campo
-  if (lines.length > 1) {
-    const last = lines.length - 1;
-    lines[last] = lines[last].replace(/,\s*$/, '');
-  }
-  lines.push('}');
-  return lines.join('\n');
-}
-
-// --- PDF inline ------------------------------------------------------------
-// Crea / destruye un overlay con iframe del PDF dentro del detalle.
-function togglePdfInline(slug, href) {
-  const existing = document.getElementById('pdf-overlay');
-  if (existing) {
-    existing.remove();
-    return;
-  }
-  const overlay = document.createElement('div');
-  overlay.id = 'pdf-overlay';
-  overlay.className = 'pdf-overlay';
-
-  const bar = document.createElement('div');
-  bar.className = 'pdf-overlay-bar';
-  const label = document.createElement('span');
-  label.textContent = slug + '.pdf';
-  const close = document.createElement('button');
-  close.type = 'button';
-  close.className = 'pdf-overlay-close';
-  close.textContent = '×';
-  close.setAttribute('aria-label', 'Cerrar PDF');
-  close.addEventListener('click', () => overlay.remove());
-  bar.appendChild(label);
-  bar.appendChild(close);
-
-  const iframe = document.createElement('iframe');
-  iframe.src = href + '#toolbar=1&navpanes=0';
-  iframe.title = 'PDF: ' + slug;
-  iframe.className = 'pdf-overlay-frame';
-
-  overlay.appendChild(bar);
-  overlay.appendChild(iframe);
-  document.body.appendChild(overlay);
-}
-
-// --- Interacción -----------------------------------------------------------
-function toggleTag(tag) {
-  if (state.activeTags.has(tag)) state.activeTags.delete(tag);
-  else state.activeTags.add(tag);
-  render();
-}
-
-let searchDebounce;
-function onSearchInput(e) {
-  clearTimeout(searchDebounce);
-  searchDebounce = setTimeout(() => {
-    state.query = e.target.value;
-    render();
-  }, 80);
-}
-
-function onReadFilterChange(e) {
-  state.readFilter = e.target.value;
-  render();
-}
-
-function onKeyDown(e) {
-  if (e.key === 'Escape') {
-    const overlay = document.getElementById('pdf-overlay');
-    if (overlay) { overlay.remove(); return; }
-    if (state.selectedSlug) closeDetail();
-  }
-}
-
-// --- Bootstrap -------------------------------------------------------------
 async function init() {
-  // Idioma
-  const saved = localStorage.getItem(LANG_KEY);
-  if (saved === 'es' || saved === 'en') state.lang = saved;
-  applyI18n();
-
-  // Estado desde URL (?q=...&tag=...&status=...#slug)
-  readUrlState();
-  syncControlsFromState();
-
-  // Listeners
-  els.search.addEventListener('input', onSearchInput);
-  els.readFilter.addEventListener('change', onReadFilterChange);
-  els.detailClose.addEventListener('click', closeDetail);
-  els.langToggle.addEventListener('click', () => setLang(state.lang === 'es' ? 'en' : 'es'));
-  document.addEventListener('keydown', onKeyDown);
-
-  // Data
-  try {
-    const res = await fetch(DATA_URL, { cache: 'no-cache' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    state.papers = data.map((p) => ({ ...p, _haystack: buildHaystack(p) }));
-  } catch (err) {
-    console.error('No se pudo cargar', DATA_URL, err);
-    els.papers.innerHTML = `<li class="empty">Error cargando ${DATA_URL}: ${err.message}</li>`;
-    return;
-  }
-
-  render();
-
-  // Abrir paper si el slug viene en el hash (lo dejó readUrlState).
-  if (state.selectedSlug) {
-    if (findPaper(state.selectedSlug)) selectPaper(state.selectedSlug);
-    else state.selectedSlug = null;
-  }
+  const r = await fetch(PAPERS_URL, { cache: 'no-cache' });
+  state.papers = await r.json();
+  renderHeaderTags();
+  setupListeners();
+  showCategories();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+init();

@@ -92,11 +92,12 @@ Cuando el usuario diga que leyó un paper (ej. "leí el AlphaFold, notas: ..."):
 ## Decisiones de diseño ya tomadas
 
 - Schema: ver `data/raw/papers/_template.md` y `docs/decisiones/001_formato_metadata.md`.
-- Color de acento: teal `#0f766e` (en `site/styles.css` como `--accent`).
-- UI bilingüe ES/EN (toggle persistente en localStorage).
+- **Navegación primero por tema** (tag-centric): landing con cards por tema, drill-down a papers, detalle modal. Chips de tag en el header como atajos siempre visibles. El diseño anterior con sidebar+panel-derecha quedó descartado.
+- **Paleta custom del autor:** fondo blanco puro, brand púrpura `#4a2746`, texto ink casi-negro, gris muted, azul `#0062a0` para todo lo interactivo (links + estado activo). Oliva, coral y tan reservados en `:root` para roles futuros (success, warn, warm).
 - Branch `gh-pages` huérfana, historia descartable, force-push intencional.
 - Dependencias en `DESCRIPTION`, no `renv` (ver `docs/decisiones/003_*`).
 - Inbox de PDFs vive en `inbox/` (raíz, gitignored), no en `data/raw/pdfs/inbox/`.
+- `site-variants/minimal/` se mantiene como exploración alternativa (no se deploya).
 
 ## Últimos cambios (más recientes primero)
 
