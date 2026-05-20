@@ -15,10 +15,11 @@
   /* Interacción */
   --accent:      #0062a0;        /* azul — links, estado activo */
   --accent-soft: #e5f0f7;        /* azul muy diluido */
-  /* Jerarquía / estado */
-  --primary:      #e88663;       /* coral — tag primario */
-  --primary-soft: #fdebe1;       /* coral muy diluido */
+  /* Estado / éxito */
   --success:      #75924e;       /* oliva — leído (✓) */
+  /* Reservados para roles futuros (no usados ahora) */
+  --warn:         #e88663;       /* coral — error o alerta */
+  --warm:         #bca493;       /* tan — destacar superficies cálidas */
   /* Atajos */
   --shadow:      0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
   --radius:      8px;
@@ -98,19 +99,14 @@ header {
   white-space: nowrap;
   transition: border-color 0.12s, background 0.12s, color 0.12s;
 }
-.header-tag.primary {
-  font-weight: 600;
-  background: var(--primary-soft);
-  color: var(--primary);
-  border-color: var(--primary);
-}
+/* Sin distinción visual por jerarquía en los chips: todos iguales por defecto.
+   La diferenciación primarios/secundarios ocurre en la landing (cards vs chips). */
 .header-tag .count {
   margin-left: 0.3rem;
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: normal;
 }
-.header-tag.primary .count { color: var(--primary); }
 .header-tag.active {
   background: var(--accent);
   color: var(--surface);
@@ -167,13 +163,13 @@ h2 {
 .primary-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 2px 4px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08);
-  border-color: var(--primary);
+  border-color: var(--accent);
 }
 .primary-card .tag-name {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.2rem;
-  color: var(--primary);
+  color: var(--brand);
 }
 .primary-card .tag-count {
   font-size: 0.85rem;
