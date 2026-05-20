@@ -1,0 +1,36 @@
+[
+  {
+    "abstract": "Abstract Proteins are essential to life, and understanding their structure can facilitate a mechanistic understanding of their function. Through an enormous experimental effort 1–4 , the structures of around 100,000 unique proteins have been determined 5 , but this represents a small fraction of the billions of known protein sequences 6,7 . Structural coverage is bottlenecked by the months to years of painstaking effort required to determine a single protein structure. Accurate computational approaches are needed to address this gap and to enable large-scale structural bioinformatics. Predicting the three-dimensional structure that a protein will adopt based solely on its amino acid sequence—the structure prediction component of the ‘protein folding problem’ 8 —has been an important open research problem for more than 50 years 9 . Despite recent progress 10–14 , existing methods fall far short of atomic accuracy, especially when no homologous structure is available. Here we provide the first computational method that can regularly predict protein structures with atomic accuracy even in cases in which no similar structure is known. We validated an entirely redesigned version of our neural network-based model, AlphaFold, in the challenging 14th Critical Assessment of protein Structure Prediction (CASP14) 15 , demonstrating accuracy competitive with experimental structures in a majority of cases and greatly outperforming other methods. Underpinning the latest version of AlphaFold is a novel machine learning approach that incorporates physical and biological knowledge about protein structure, leveraging multi-sequence alignments, into the design of the deep learning algorithm.\n",
+    "added_on": "2026-05-17",
+    "authors": ["Jumper, John", "Evans, Richard", "Pritzel, Alexander", "Green, Tim", "Figurnov, Michael", "Ronneberger, Olaf", "Tunyasuvunakool, Kathryn", "Bates, Russ", "Žídek, Augustin", "Potapenko, Anna", "Bridgland, Alex", "Meyer, Clemens", "Kohl, Simon A. A.", "Ballard, Andrew J.", "Cowie, Andrew", "Romera-Paredes, Bernardino", "Nikolov, Stanislav", "Jain, Rishub", "Adler, Jonas", "Back, Trevor", "Petersen, Stig", "Reiman, David", "Clancy, Ellen", "Zielinski, Michal", "Steinegger, Martin", "Pacholska, Michalina", "Berghammer, Tamas", "Bodenstein, Sebastian", "Silver, David", "Vinyals, Oriol", "Senior, Andrew W.", "Kavukcuoglu, Koray", "Kohli, Pushmeet", "Hassabis, Demis"],
+    "doi": "10.1038/s41586-021-03819-2",
+    "has_pdf": false,
+    "journal": "Nature",
+    "key_findings": "",
+    "notes": "## Notas",
+    "read": false,
+    "slug": "jumper_2021_highly_accurate_protein",
+    "source": "paper",
+    "tags": ["deep-learning", "protein-folding", "alphafold", "bioinformatics"],
+    "title": "Highly accurate protein structure prediction with AlphaFold",
+    "url": "https://doi.org/10.1038/s41586-021-03819-2",
+    "year": 2021
+  },
+  {
+    "abstract": "The dominant sequence transduction models are based on complex recurrent or\nconvolutional neural networks that include an encoder and a decoder. We propose\na new simple network architecture, the Transformer, based solely on attention\nmechanisms, dispensing with recurrence and convolutions entirely.\n",
+    "added_on": "2026-05-17",
+    "authors": ["Vaswani, Ashish", "Shazeer, Noam", "Parmar, Niki", "Uszkoreit, Jakob", "Jones, Llion", "Gomez, Aidan N.", "Kaiser, Łukasz", "Polosukhin, Illia"],
+    "doi": "10.48550/arXiv.1706.03762",
+    "has_pdf": true,
+    "journal": "Advances in Neural Information Processing Systems (NeurIPS)",
+    "key_findings": ["La arquitectura Transformer reemplaza recurrencia y convolución por self-attention puro.", "Alcanza estado del arte en traducción automática con significativamente menos cómputo de entrenamiento.", "Sienta la base para toda la familia posterior de modelos (BERT, GPT, T5, etc.)."],
+    "notes": "Paper de ejemplo cargado para validar el pipeline.\n**Borrar al ingresar el primer paper real de la librería.**\n\n## Notas\n\nEste archivo es un placeholder para ejercitar el parser y demostrar el\nrendering de markdown.\n\n### Lo que el cuerpo soporta\n\n- Encabezados de cualquier nivel\n- **Negritas**, *cursivas* y `código inline`\n- Listas con o sin orden\n- [Enlaces externos](https://arxiv.org/abs/1706.03762)\n- Bloques de código:\n\n```python\nimport torch\nattention = torch.softmax(Q @ K.T / sqrt(d_k), dim=-1)\noutput = attention @ V\n```\n\n> Citas en bloque, útiles para citar al autor con número de página.\n\n### Pendiente\n1. Decidir si vinculo este paper con `bert_2018` y `gpt_2018`.\n2. Revisar la sección 3.2 sobre multi-head attention.",
+    "read": true,
+    "slug": "vaswani_2017_attention_is_all_you_need",
+    "source": "paper",
+    "tags": ["deep-learning", "transformers", "attention"],
+    "title": "Attention Is All You Need",
+    "url": "https://arxiv.org/abs/1706.03762",
+    "year": 2017
+  }
+]
