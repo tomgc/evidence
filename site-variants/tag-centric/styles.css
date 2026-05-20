@@ -62,14 +62,64 @@ header {
   color: var(--ink);
 }
 #back:hover { border-color: var(--accent); color: var(--accent); }
+/* Header tags: atajos rápidos a cada tema, entre brand y buscar. */
+.header-tags {
+  flex: 1;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  overflow-x: auto;
+  scrollbar-width: none;          /* Firefox */
+  margin: 0 0.5rem;
+  padding: 0.15rem 0;
+  min-width: 0;                   /* permite encogerse */
+}
+.header-tags::-webkit-scrollbar { display: none; } /* Safari/Chrome */
+.header-tag {
+  flex-shrink: 0;
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+.header-tag.primary {
+  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  border-color: var(--accent);
+}
+.header-tag .count {
+  margin-left: 0.3rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: normal;
+}
+.header-tag.primary .count { color: var(--accent); }
+.header-tag.active {
+  background: var(--accent);
+  color: var(--surface);
+  border-color: var(--accent);
+}
+.header-tag.active .count { color: rgba(255,255,255,0.8); }
+.header-tag:hover:not(.active) {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
 #q {
-  margin-left: auto;
+  flex-shrink: 0;
   font-family: inherit;
   font-size: 0.875rem;
   padding: 0.4rem 0.75rem;
   border: 1px solid var(--rule);
   border-radius: var(--radius);
-  min-width: 260px;
+  min-width: 200px;
   background: var(--surface);
 }
 #q:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }

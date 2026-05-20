@@ -41,6 +41,28 @@ function setView(v) {
   $('#tag-papers').classList.toggle('hidden', v !== 'tag' && v !== 'search');
   $('#detail').classList.toggle('hidden', v !== 'detail');
   $('#back').classList.toggle('hidden', v === 'categories');
+  // Refleja el tag activo en la nav del header.
+  document.querySelectorAll('.header-tag').forEach((el) => {
+    el.classList.toggle('active', el.dataset.tag === state.activeTag);
+  });
+}
+
+// Renderiza los tags en el header (atajos siempre visibles).
+// Primarios (top N por frecuencia) van resaltados; el resto plano.
+function renderHeaderTags() {
+  const freq = tagFrequency();
+  const primaryNames = new Set(freq.slice(0, PRIMARY_TOP_N).map(([t]) => t));
+  const nav = $('#header-tags');
+  nav.innerHTML = '';
+  for (const [tag, count] of freq) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'header-tag' + (primaryNames.has(tag) ? ' primary' : '');
+    btn.dataset.tag = tag;
+    btn.innerHTML = `${tag}<span class="count">${count}</span>`;
+    btn.addEventListener('click', () => showTagPapers(tag));
+    nav.appendChild(btn);
+  }
 }
 
 function showCategories() {
@@ -185,6 +207,7 @@ function setupListeners() {
 async function init() {
   const r = await fetch(PAPERS_URL, { cache: 'no-cache' });
   state.papers = await r.json();
+  renderHeaderTags();
   setupListeners();
   showCategories();
 }
