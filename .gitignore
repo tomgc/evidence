@@ -17,3 +17,7 @@ site/data/
 # Inbox de PDFs sueltos (transit, no canonical).
 # Se recrea automáticamente al correr scripts/03_process_inbox.R.
 inbox/
+
+# Variantes de diseño: data/ es copia derivada, vendor/ es copia local.
+site-variants/*/data/
+site-variants/*/vendor/

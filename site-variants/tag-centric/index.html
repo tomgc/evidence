@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>evidence · temas</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>evidence</h1>
+      <p class="tagline">explorar por tema</p>
+    </div>
+    <button id="back" class="hidden" type="button">← Todos los temas</button>
+    <input id="q" type="search" placeholder="buscar…" autocomplete="off">
+  </header>
+
+  <main>
+    <!-- Landing: categorías -->
+    <section id="categories">
+      <h2>Temas principales</h2>
+      <p class="muted-sub">Los temas más representados en tu librería.</p>
+      <div class="primary-grid" id="primary-tags"></div>
+
+      <h2 class="secondary-heading">Otros temas</h2>
+      <div class="secondary-row" id="secondary-tags"></div>
+    </section>
+
+    <!-- Papers para un tag -->
+    <section id="tag-papers" class="hidden">
+      <h2 id="tag-title"></h2>
+      <p id="tag-meta" class="muted-sub"></p>
+      <ol id="papers-list"></ol>
+    </section>
+
+    <!-- Detalle de un paper -->
+    <section id="detail" class="hidden"></section>
+  </main>
+
+  <script src="vendor/marked.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

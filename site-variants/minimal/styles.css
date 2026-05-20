@@ -1,0 +1,135 @@
+/* Variant: minimal — serif tipográfico, columna única, sin acento de color.
+   Inspirado en Tufte / bibliografía impresa. */
+
+:root {
+  --bg:    #fafaf7;
+  --ink:   #1a1a1a;
+  --muted: #6b6b6b;
+  --rule:  #d8d6d0;
+}
+
+* { box-sizing: border-box; }
+html { font-size: 17px; }
+body {
+  margin: 0;
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Hoefler Text", serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+main {
+  max-width: 38em;
+  margin: 2.5rem auto 4rem auto;
+  padding: 0 1.5rem;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.75rem;
+  margin-bottom: 2rem;
+}
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: normal;
+  letter-spacing: 0.02em;
+}
+#q {
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.9rem;
+  border: none;
+  border-bottom: 1px solid var(--rule);
+  padding: 0.25rem 0;
+  background: transparent;
+  outline: none;
+  color: var(--ink);
+}
+#q:focus { border-color: var(--ink); }
+#q::placeholder { font-style: italic; color: var(--muted); }
+
+ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: paper;
+}
+ol > li {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--rule);
+  counter-increment: paper;
+}
+
+details summary {
+  cursor: pointer;
+  display: block;
+  list-style: none;
+  outline: none;
+}
+details summary::-webkit-details-marker { display: none; }
+details summary::before {
+  content: counter(paper) ".";
+  color: var(--muted);
+  margin-right: 0.5em;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85em;
+}
+
+.title { font-size: 1.05rem; }
+details[open] .title { font-weight: bold; }
+.read-mark {
+  color: var(--muted);
+  font-size: 0.8em;
+  margin-left: 0.5em;
+}
+.meta {
+  display: block;
+  margin-left: 1.5em;
+  margin-top: 0.1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.detail {
+  margin: 0.85rem 0 0.25rem 1.5em;
+  font-size: 0.95rem;
+}
+.detail p.abstract {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin: 0 0 0.75rem 0;
+}
+.detail ul.findings {
+  padding-left: 1.2em;
+  margin: 0 0 0.85rem 0;
+}
+.detail ul.findings li {
+  padding: 0;
+  border: none;
+  list-style: disc;
+  margin-bottom: 0.2rem;
+}
+.detail .tags {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+}
+.detail .links {
+  margin-top: 0.65rem;
+  font-size: 0.85rem;
+}
+.detail .links a {
+  color: var(--ink);
+  margin-right: 1.25rem;
+  text-decoration: underline;
+  text-decoration-color: var(--muted);
+  text-underline-offset: 0.15em;
+}
+.detail .links a:hover {
+  text-decoration-color: var(--ink);
+}

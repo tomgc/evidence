@@ -106,6 +106,22 @@ for (p in pdfs_raw) {
   file.copy(p, file.path(ruta_site_pdfs, basename(p)), overwrite = TRUE)
 }
 
+# Si existe site-variants/, replica papers.json + pdfs/ a cada variante.
+# Diseños alternativos en exploración; no afectan el sitio principal.
+ruta_variants <- here("site-variants")
+if (dir.exists(ruta_variants)) {
+  for (v in list.dirs(ruta_variants, recursive = FALSE)) {
+    v_data <- file.path(v, "data")
+    v_pdfs <- file.path(v_data, "pdfs")
+    if (!dir.exists(v_data)) dir.create(v_data, recursive = TRUE)
+    if (!dir.exists(v_pdfs)) dir.create(v_pdfs, recursive = TRUE)
+    file.copy(ruta_papers_json, file.path(v_data, "papers.json"), overwrite = TRUE)
+    for (p in pdfs_raw) {
+      file.copy(p, file.path(v_pdfs, basename(p)), overwrite = TRUE)
+    }
+  }
+}
+
 # --- Resumen ------------------------------------------------------------------
 con_pdf <- sum(vapply(papers, `[[`, logical(1), "has_pdf"))
 message(sprintf("\n[OK] %d papers escritos en %s", length(papers), ruta_papers_json))
